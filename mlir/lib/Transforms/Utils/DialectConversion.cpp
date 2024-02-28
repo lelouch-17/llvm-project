@@ -153,9 +153,9 @@ namespace {
 /// This is useful when saving and undoing a set of rewrites.
 struct RewriterState {
   RewriterState(unsigned numRewrites, unsigned numIgnoredOperations,
-                unsigned numErased)
+                unsigned numErased, unsigned numReplacedOps)
       : numRewrites(numRewrites), numIgnoredOperations(numIgnoredOperations),
-        numErased(numErased) {}
+        numErased(numErased), numReplacedOps(numReplacedOps) {}
 
   /// The current number of rewrites performed.
   unsigned numRewrites;
@@ -165,6 +165,9 @@ struct RewriterState {
 
   /// The current number of erased operations/blocks.
   unsigned numErased;
+
+  /// The current number of replaced ops that are scheduled for erasure.
+  unsigned numReplacedOps;
 };
 
 //===----------------------------------------------------------------------===//
@@ -954,6 +957,9 @@ struct ConversionPatternRewriterImpl : public RewriterBase::Listener {
   /// operation was ignored.
   SetVector<Operation *> ignoredOps;
 
+  // A set of operations that were erased.
+  SetVector<Operation *> replacedOps;
+
   /// The current type converter, or nullptr if no type converter is currently
   /// active.
   const TypeConverter *currentTypeConverter = nullptr;
@@ -1034,15 +1040,15 @@ void BlockTypeConversionRewrite::rollback() {
 
 LogicalResult BlockTypeConversionRewrite::materializeLiveConversions(
     function_ref<Operation *(Value)> findLiveUser) {
-  auto builder = OpBuilder::atBlockBegin(block, /*listener=*/&rewriterImpl);
-
   // Process the remapping for each of the original arguments.
   for (auto it : llvm::enumerate(origBlock->getArguments())) {
-    OpBuilder::InsertionGuard g(builder);
+    BlockArgument origArg = it.value();
+    // Note: `block` may be detached, so OpBuilder::atBlockBegin cannot be used.
+    OpBuilder builder(it.value().getContext(), /*listener=*/&rewriterImpl);
+    builder.setInsertionPointToStart(block);
 
     // If the type of this argument changed and the argument is still live, we
     // need to materialize a conversion.
-    BlockArgument origArg = it.value();
     if (rewriterImpl.mapping.lookupOrNull(origArg, origArg.getType()))
       continue;
     Operation *liveUser = findLiveUser(origArg);
@@ -1152,7 +1158,7 @@ void ConversionPatternRewriterImpl::applyRewrites() {
 
 RewriterState ConversionPatternRewriterImpl::getCurrentState() {
   return RewriterState(rewrites.size(), ignoredOps.size(),
-                       eraseRewriter.erased.size());
+                       eraseRewriter.erased.size(), replacedOps.size());
 }
 
 void ConversionPatternRewriterImpl::resetState(RewriterState state) {
@@ -1165,6 +1171,9 @@ void ConversionPatternRewriterImpl::resetState(RewriterState state) {
 
   while (eraseRewriter.erased.size() != state.numErased)
     eraseRewriter.erased.pop_back();
+
+  while (replacedOps.size() != state.numReplacedOps)
+    replacedOps.pop_back();
 }
 
 void ConversionPatternRewriterImpl::undoRewrites(unsigned numRewritesToKeep) {
@@ -1228,10 +1237,11 @@ LogicalResult ConversionPatternRewriterImpl::remapValues(
   return success();
 }
 
+// TODO: This function is a misnomer. It does not actually check if `op` is in
+// `ignoredOps`.
 bool ConversionPatternRewriterImpl::isOpIgnored(Operation *op) const {
-  // Check to see if this operation was replaced or its parent ignored.
-  return ignoredOps.count(op->getParentOp()) ||
-         hasRewrite<ReplaceOperationRewrite>(rewrites, op);
+  // Check to see if this operation or the parent operation is ignored.
+  return ignoredOps.count(op->getParentOp()) || replacedOps.count(op);
 }
 
 void ConversionPatternRewriterImpl::markNestedOpsIgnored(Operation *op) {
@@ -1321,7 +1331,7 @@ LogicalResult ConversionPatternRewriterImpl::convertNonEntryRegionTypes(
 Block *ConversionPatternRewriterImpl::applySignatureConversion(
     Block *block, const TypeConverter *converter,
     TypeConverter::SignatureConversion &signatureConversion) {
-  MLIRContext *ctx = block->getParentOp()->getContext();
+  MLIRContext *ctx = eraseRewriter.getContext();
 
   // If no arguments are being changed or added, there is nothing to do.
   unsigned origArgCount = block->getNumArguments();
@@ -1480,12 +1490,7 @@ void ConversionPatternRewriterImpl::notifyOperationInserted(
 void ConversionPatternRewriterImpl::notifyOpReplaced(Operation *op,
                                                      ValueRange newValues) {
   assert(newValues.size() == op->getNumResults());
-#ifndef NDEBUG
-  for (auto &rewrite : rewrites)
-    if (auto *opReplacement = dyn_cast<ReplaceOperationRewrite>(rewrite.get()))
-      assert(opReplacement->getOperation() != op &&
-             "operation was already replaced");
-#endif // NDEBUG
+  assert(!replacedOps.contains(op) && "operation was already replaced");
 
   // Track if any of the results changed, e.g. erased and replaced with null.
   bool resultChanged = false;
@@ -1506,6 +1511,7 @@ void ConversionPatternRewriterImpl::notifyOpReplaced(Operation *op,
 
   // Mark this operation as recursively ignored so that we don't need to
   // convert any nested operations.
+  replacedOps.insert(op);
   markNestedOpsIgnored(op);
 }
 
