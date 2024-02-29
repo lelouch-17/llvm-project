@@ -1,0 +1,110 @@
+//===- AMDGPUPassRegistry.def - Registry of passes for AMDGPU ---*- C++ -*-===//
+//
+// Part of the LLVM Project, under the Apache License v2.0 with LLVM Exceptions.
+// See https://llvm.org/LICENSE.txt for license information.
+// SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
+//
+//===----------------------------------------------------------------------===//
+//
+// AMDGPU pass registry
+//
+//===----------------------------------------------------------------------===//
+
+// NOTE: NO INCLUDE GUARD DESIRED!
+// Move all passes to dummy table to normal table once they are ported to the 
+// new pass manager interface.
+
+#ifndef FUNCTION_PASS
+#define FUNCTION_PASS(NAME, PASS_NAME, CONSTRUCTOR)
+#endif
+FUNCTION_PASS("amdgpu-image-intrinsic-opt", AMDGPUImageIntrinsicOptimizerPass, (getTM<AMDGPUTargetMachine>()))
+FUNCTION_PASS("amdgpu-atomic-optimizer", AMDGPUAtomicOptimizerPass, (getTM<AMDGPUTargetMachine>(), AMDGPUAtomicOptimizerStrategy))
+FUNCTION_PASS("amdgpu-promote-alloca", AMDGPUPromoteAllocaPass, (getTM<AMDGPUTargetMachine>()))
+FUNCTION_PASS("amdgpu-codegenprepare", AMDGPUCodeGenPreparePass, (getTM<AMDGPUTargetMachine>()))
+FUNCTION_PASS("amdgpu-lower-kernel-arguments", AMDGPULowerKernelArgumentsPass, (getTM<AMDGPUTargetMachine>()))
+FUNCTION_PASS("amdgpu-rewrite-undef-for-phi", AMDGPURewriteUndefForPHIPass, ())
+
+#undef FUNCTION_PASS
+
+#ifndef DUMMY_FUNCTION_PASS
+#define DUMMY_FUNCTION_PASS(NAME, PASS_NAME, CONSTRUCTOR)
+#endif
+DUMMY_FUNCTION_PASS("amdgpu-aa-dummy", AMDGPUAAWrapperPass, ())
+DUMMY_FUNCTION_PASS("amdgpu-annotate-kernel-features-dummy", AMDGPUAnnotateKernelFeaturesPass, ())
+DUMMY_FUNCTION_PASS("amdgpu-annotate-uniform-values-dummy", AMDGPUAnnotateUniformValuesPass, ())
+DUMMY_FUNCTION_PASS("si-annotate-control-flow-dummy", SIAnnotateControlFlowPass, ())
+DUMMY_FUNCTION_PASS("amdgpu-late-codgen-prepare-dummy", AMDGPULateCodeGenPreparePass, ())
+
+#undef DUMMY_FUNCTION_PASS
+
+#ifndef MODULE_PASS
+#define MODULE_PASS(NAME, PASS_NAME, CONSTRUCTOR)
+#endif
+MODULE_PASS("amdgpu-printf-runtime-binding", AMDGPUPrintfRuntimeBindingPass, ())
+MODULE_PASS("amdgpu-always-inline", AMDGPUAlwaysInlinePass, ())
+MODULE_PASS("amdgpu-attributor", AMDGPUAttributorPass, (getTM<AMDGPUTargetMachine>()))
+MODULE_PASS("amdgpu-lower-module-lds", AMDGPULowerModuleLDSPass, (getTM<AMDGPUTargetMachine>()))
+#undef MODULE_PASS
+
+#ifndef DUMMY_MODULE_PASS
+#define DUMMY_MODULE_PASS(NAME, PASS_NAME, CONSTRUCTOR)
+#endif
+DUMMY_MODULE_PASS("amdgpu-ctor-dtor-functions-dummy", AMDGPUCtorDtorLoweringLegacyPass, ())
+DUMMY_MODULE_PASS("always-inliner-legacy-dummy", AlwaysInlinerLegacyPass, ())
+DUMMY_MODULE_PASS("r600-opencl-image-type-lowering-dummy", R600OpenCLImageTypeLoweringPass, ())
+DUMMY_MODULE_PASS("amdgpu-opencl-enqueued-lowering-dummy", AMDGPUOpenCLEnqueuedBlockLoweringPass, ())
+DUMMY_MODULE_PASS("amdgpu-lower-module-lds-legacy-dummy", AMDGPULowerModuleLDSLegacyPass, (TargetMachine))
+DUMMY_MODULE_PASS("amdgpu-remove-incompatible-functions-dummy", AMDGPURemoveIncompatibleFunctionsPass, ())
+
+#undef DUMMY_MODULE_PASS
+
+
+#ifndef MACHINE_FUNCTION_PASS
+#define MACHINE_FUNCTION_PASS(NAME, PASS_NAME, CONSTRUCTOR)
+#endif
+
+#undef MACHINE_FUNCTION_PASS
+
+// PASS_NAME is for mocking machine passes, remove it after all machine passes
+// are added new pass manager interface.
+#ifndef DUMMY_MACHINE_FUNCTION_PASS
+#define DUMMY_MACHINE_FUNCTION_PASS(NAME, PASS_NAME, CONSTRUCTOR)
+#endif
+DUMMY_MACHINE_FUNCTION_PASS("amdgpu-isel-dag-dummy", AMDGPUDAGToDAGISelPass, (getTM<AMDGPUTargetMachine>(), getOptLevel()))
+DUMMY_MACHINE_FUNCTION_PASS("amdgpu-post-leg-comb-dummy", AMDGPUPostLegalizeCombinerPass, ())
+DUMMY_MACHINE_FUNCTION_PASS("amdgpu-regbank-comb-dummy", AMDGPURegBankCombinerPass, ())
+DUMMY_MACHINE_FUNCTION_PASS("amdgpu-cfg-structurizer-dummy", AMDGPUMachineCFGStructurizerPass, ())
+DUMMY_MACHINE_FUNCTION_PASS("amdgpu-insert-single-use-vtsd-dummy", AMDGPUInsertSingleUseVDSTPass, ())
+DUMMY_MACHINE_FUNCTION_PASS("si-whole-quad-mode-dummy", SIWholeQuadModePass, ())
+DUMMY_MACHINE_FUNCTION_PASS("si-fix-sgpr-copies-dummy", SIFixSGPRCopiesPass, ())
+DUMMY_MACHINE_FUNCTION_PASS("si-lower-i1-copies-dummy", SILowerI1CopiesPass, ())
+DUMMY_MACHINE_FUNCTION_PASS("si-lower-control-flow-dummy", SILowerControlFlowPass, ())
+DUMMY_MACHINE_FUNCTION_PASS("amdgpu-pre-ra-long-branch-reg-dummy", GCNPreRALongBranchRegPass, ())
+DUMMY_MACHINE_FUNCTION_PASS("si-lower-sgpr-spills-dummy", SILowerSGPRSpillsPass, ())
+DUMMY_MACHINE_FUNCTION_PASS("si-preallocate-wwm-regs-dummy", SIPreAllocateWWMRegsPass, ())
+DUMMY_MACHINE_FUNCTION_PASS("si-lower-wwm-copies-dummy", SILowerWWMCopiesPass, ())
+DUMMY_MACHINE_FUNCTION_PASS("si-fix-vgpr-copies-dummy", SIFixVGPRCopiesPass, ())
+DUMMY_MACHINE_FUNCTION_PASS("si-postra-bundler-dummy", SIPostRABundlerPass, ())
+DUMMY_MACHINE_FUNCTION_PASS("si-memory-legalizer-dummy", SIMemoryLegalizerPass, ())
+DUMMY_MACHINE_FUNCTION_PASS("si-insert-waitcnts-dummy", SIInsertWaitcntsPass, ())
+DUMMY_MACHINE_FUNCTION_PASS("si-mode-register-dummy", SIModeRegisterPass, ())
+DUMMY_MACHINE_FUNCTION_PASS("si-set-wave-priority", AMDGPUSetWavePriorityPass, ())
+
+DUMMY_MACHINE_FUNCTION_PASS("si-late-branch-lowering-dummy", SILateBranchLoweringPass, ())
+DUMMY_MACHINE_FUNCTION_PASS("amdgpu-asm-printer-dummy", AMDGPUAsmPrinterPass, ())
+DUMMY_MACHINE_FUNCTION_PASS("si-fold-operands-dummy", SIFoldOperandsPass, ())
+DUMMY_MACHINE_FUNCTION_PASS("si-load-store-optimizer-dummy", SILoadStoreOptimizerPass, ())
+DUMMY_MACHINE_FUNCTION_PASS("si-shrink-instructions-dummy", SIShrinkInstructionsPass, ())
+DUMMY_MACHINE_FUNCTION_PASS("si-optimize-vgpr-live-range-dummy", SIOptimizeVGPRLiveRangePass, ())
+DUMMY_MACHINE_FUNCTION_PASS("si-optimize-exec-masking-dummy", SIOptimizeExecMaskingPass, ())
+DUMMY_MACHINE_FUNCTION_PASS("si-optimize-exec-masking-prera-dummy", SIOptimizeExecMaskingPreRAPass, ())
+DUMMY_MACHINE_FUNCTION_PASS("amdgpu-nsa-reassign-dummy", GCNNSAReassignPass, ())
+DUMMY_MACHINE_FUNCTION_PASS("gcn-create-vopd-dummy", GCNCreateVOPDPass, ())
+DUMMY_MACHINE_FUNCTION_PASS("si-insert-hard-clauses-dummy", SIInsertHardClausesPass, ())
+DUMMY_MACHINE_FUNCTION_PASS("si-pre-emit-peephole-dummy", SIPreEmitPeepholePass, ())
+DUMMY_MACHINE_FUNCTION_PASS("amdgpu-insert-delay-alu-dummy", AMDGPUInsertDelayAluPass, ())
+DUMMY_MACHINE_FUNCTION_PASS("gcn-dpp-combine-dummy", GCNDPPCombinePass, ())
+DUMMY_MACHINE_FUNCTION_PASS("si-peephole-sdwa-dummy", SIPeepholeSDWAPass, ())
+DUMMY_MACHINE_FUNCTION_PASS("si-form-memory-clauses", SIFormMemoryClausesPass, ())
+
+#undef DUMMY_MACHINE_FUNCTION_PASS
