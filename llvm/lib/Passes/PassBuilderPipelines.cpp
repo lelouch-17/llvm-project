@@ -247,7 +247,7 @@ static cl::opt<bool>
 
 static cl::opt<bool> EnableJumpTableToSwitch(
     "enable-jump-table-to-switch",
-    cl::desc("Enable JumpTableToSwitch pass (default = on)"), cl::init(true));
+    cl::desc("Enable JumpTableToSwitch pass (default = off)"));
 
 // This option is used in simplifying testing SampleFDO optimizations for
 // profile loading.
@@ -707,7 +707,7 @@ PassBuilder::buildFunctionSimplificationPipeline(OptimizationLevel Level,
 
   // Re-consider control flow based optimizations after redundancy elimination,
   // redo DCE, etc.
-  if (EnableDFAJumpThreading && Level.getSizeLevel() == 0)
+  if (EnableDFAJumpThreading)
     FPM.addPass(DFAJumpThreadingPass());
 
   FPM.addPass(JumpThreadingPass());
