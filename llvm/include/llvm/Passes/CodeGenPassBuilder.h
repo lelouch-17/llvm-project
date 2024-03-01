@@ -14,6 +14,12 @@
 #ifndef LLVM_PASSES_CODEGENPASSBUILDER_H
 #define LLVM_PASSES_CODEGENPASSBUILDER_H
 
+#include "llvm/Transforms/Scalar/SeparateConstOffsetFromGEP.h"
+#include "llvm/Transforms/Scalar/StraightLineStrengthReduce.h"
+#include "llvm/Transforms/Scalar/NaryReassociate.h"
+#include "llvm/Transforms/Scalar/GVN.h"
+#include "llvm/MC/MCStreamer.h"
+
 #include "llvm/ADT/SmallVector.h"
 #include "llvm/ADT/StringRef.h"
 #include "llvm/Analysis/AliasAnalysis.h"
@@ -405,6 +411,11 @@ protected:
   /// before exception handling preparation passes.
   void addCodeGenPrepare(AddIRPass &) const;
 
+  /// TODO: Add description
+  void addStraightLineScalarOptimizationPasses(AddIRPass &) const;
+
+  void addEarlyCSEOrGVNPass(AddIRPass &) const;
+
   /// Add common passes that perform LLVM IR to IR transforms in preparation for
   /// instruction selection.
   void addISelPrepare(AddIRPass &) const;
@@ -671,6 +682,31 @@ void CodeGenPassBuilder<Derived>::addIRPasses(AddIRPass &addPass) const {
   // Convert conditional moves to conditional jumps when profitable.
   if (getOptLevel() != CodeGenOptLevel::None && !Opt.DisableSelectOptimize)
     addPass(SelectOptimizePass(&TM));
+}
+
+template <typename Derived>
+void CodeGenPassBuilder<Derived>::addEarlyCSEOrGVNPass(AddIRPass &addPass) const {
+  if (getOptLevel() == CodeGenOptLevel::Aggressive)
+    addPass(GVNPass());
+  else
+    addPass(EarlyCSEPass());
+}
+
+template <typename Derived>
+void CodeGenPassBuilder<Derived>::addStraightLineScalarOptimizationPasses(AddIRPass &addPass) const {
+  addPass(SeparateConstOffsetFromGEPPass());
+  // ReassociateGEPs exposes more opportunities for SLSR. See
+  // the example in reassociate-geps-and-slsr.ll.
+  addPass(StraightLineStrengthReducePass());
+  // SeparateConstOffsetFromGEP and SLSR creates common expressions which GVN or
+  // EarlyCSE can reuse.
+  // FIXME: Port this
+  addEarlyCSEOrGVNPass(addPass);
+  // Run NaryReassociate after EarlyCSE/GVN to be more effective.
+  addPass(NaryReassociatePass());
+  // NaryReassociate on GEPs creates redundant common expressions, so run
+  // EarlyCSE after it.
+  addPass(EarlyCSEPass());
 }
 
 /// Turn exception handling constructs into something the code generators can
