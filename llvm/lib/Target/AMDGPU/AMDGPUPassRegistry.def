@@ -18,7 +18,7 @@
 #define FUNCTION_PASS(NAME, PASS_NAME, CONSTRUCTOR)
 #endif
 FUNCTION_PASS("amdgpu-image-intrinsic-opt", AMDGPUImageIntrinsicOptimizerPass, (getTM<AMDGPUTargetMachine>()))
-FUNCTION_PASS("amdgpu-atomic-optimizer", AMDGPUAtomicOptimizerPass, (getTM<AMDGPUTargetMachine>(), AMDGPUAtomicOptimizerStrategy))
+FUNCTION_PASS("amdgpu-atomic-optimizer", AMDGPUAtomicOptimizerPass, (getTM<AMDGPUTargetMachine>(), ScanOptions::None))
 FUNCTION_PASS("amdgpu-promote-alloca", AMDGPUPromoteAllocaPass, (getTM<AMDGPUTargetMachine>()))
 FUNCTION_PASS("amdgpu-codegenprepare", AMDGPUCodeGenPreparePass, (getTM<AMDGPUTargetMachine>()))
 FUNCTION_PASS("amdgpu-lower-kernel-arguments", AMDGPULowerKernelArgumentsPass, (getTM<AMDGPUTargetMachine>()))

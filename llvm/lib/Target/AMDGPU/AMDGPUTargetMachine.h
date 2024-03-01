@@ -73,6 +73,10 @@ public:
                              PassInstrumentationCallbacks *) override;
   
 
+  void registerModuleAnalyses(ModuleAnalysisManager &);
+  void registerFunctionAnalyses(FunctionAnalysisManager &);
+  bool parseModulePass(StringRef, ModulePassManager &);
+  bool parseFunctionPass(StringRef, FunctionPassManager &);
   // bool parseLoopPass(StringRef, LoopPassManager &);
 
   // std::pair<StringRef, bool> getPassNameFromLegacyName(StringRef) override;
