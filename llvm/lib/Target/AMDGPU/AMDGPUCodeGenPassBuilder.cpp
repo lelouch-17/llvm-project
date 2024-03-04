@@ -200,7 +200,7 @@ void AMDGPUCodeGenPassBuilder::addIRPasses(AddIRPass &addPass) const {
   //   addPass(AMDGPUAtomicOptimizerPass(TM, AMDGPUAtomicOptimizerStrategy));
   // }
 
-  addPass(AtomicExpandPass());
+  //addPass(AtomicExpandPass());
 
   if (TM.getOptLevel() > CodeGenOptLevel::None) {
     addPass(AMDGPUPromoteAllocaPass(TM));
@@ -429,7 +429,7 @@ void AMDGPUCodeGenPassBuilder::addMachineSSAOptimization(
     addPass(MachineCSEPass());
     addPass(SIFoldOperandsPass());
 //  }
-  addPass(DeadMachineInstructionElimPass());
+ // addPass(DeadMachineInstructionElimPass());
   addPass(SIShrinkInstructionsPass());
 }
 
