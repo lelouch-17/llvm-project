@@ -23,13 +23,12 @@ FUNCTION_PASS("amdgpu-promote-alloca", AMDGPUPromoteAllocaPass, (getTM<AMDGPUTar
 FUNCTION_PASS("amdgpu-codegenprepare", AMDGPUCodeGenPreparePass, (getTM<AMDGPUTargetMachine>()))
 FUNCTION_PASS("amdgpu-lower-kernel-arguments", AMDGPULowerKernelArgumentsPass, (getTM<AMDGPUTargetMachine>()))
 FUNCTION_PASS("amdgpu-rewrite-undef-for-phi", AMDGPURewriteUndefForPHIPass, ())
-
+FUNCTION_PASS("amdgpu-aa", AMDGPUAAWrapperPass, ())
 #undef FUNCTION_PASS
 
 #ifndef DUMMY_FUNCTION_PASS
 #define DUMMY_FUNCTION_PASS(NAME, PASS_NAME, CONSTRUCTOR)
 #endif
-DUMMY_FUNCTION_PASS("amdgpu-aa-dummy", AMDGPUAAWrapperPass, ())
 DUMMY_FUNCTION_PASS("amdgpu-annotate-kernel-features-dummy", AMDGPUAnnotateKernelFeaturesPass, ())
 DUMMY_FUNCTION_PASS("amdgpu-annotate-uniform-values-dummy", AMDGPUAnnotateUniformValuesPass, ())
 DUMMY_FUNCTION_PASS("si-annotate-control-flow-dummy", SIAnnotateControlFlowPass, ())
