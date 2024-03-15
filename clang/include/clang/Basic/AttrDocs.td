@@ -2741,6 +2741,33 @@ An error will be given if:
   }];
 }
 
+def AMDGPUMaxNumWorkGroupsDocs : Documentation {
+  let Category = DocCatAMDGPUAttributes;
+  let Content = [{
+This attribute specifies the max number of work groups when the kernel
+is dispatched.
+
+Clang supports the
+``__attribute__((amdgpu_max_num_work_groups(<x>, <y>, <z>)))`` or
+``[[clang::amdgpu_max_num_work_groups(<x>, <y>, <z>)]]`` attribute for the
+AMDGPU target. This attribute may be attached to HIP or OpenCL kernel function
+definitions and is an optimization hint.
+
+The ``<x>`` parameter specifies the maximum number of work groups in the x dimension.
+Similarly ``<y>`` and ``<z>`` are for the y and z dimensions respectively.
+Each of the three values must be greater than 0 when provided. The ``<x>`` parameter
+is required, while ``<y>`` and ``<z>`` are optional with default value of 1.
+
+If specified, the AMDGPU target backend might be able to produce better machine
+code.
+
+An error will be given if:
+  - Specified values violate subtarget specifications;
+  - Specified values are not compatible with values provided through other
+    attributes.
+  }];
+}
+
 def DocCatCallingConvs : DocumentationCategory<"Calling Conventions"> {
   let Content = [{
 Clang supports several different calling conventions, depending on the target
@@ -4124,6 +4151,20 @@ non-underscored keywords. For example:
       @property (assign, nullable) NSView *superview;
       @property (readonly, nonnull) NSArray *subviews;
     @end
+
+As well as built-in pointer types, the nullability attributes can be attached
+to C++ classes marked with the ``_Nullable`` attribute.
+
+The following C++ standard library types are considered nullable:
+``unique_ptr``, ``shared_ptr``, ``auto_ptr``, ``exception_ptr``, ``function``,
+``move_only_function`` and ``coroutine_handle``.
+
+Types should be marked nullable only where the type itself leaves nullability
+ambiguous. For example, ``std::optional`` is not marked ``_Nullable``, because
+``optional<int> _Nullable`` is redundant and ``optional<int> _Nonnull`` is
+not a useful type. ``std::weak_ptr`` is not nullable, because its nullability
+can change with no visible modification, so static annotation is unlikely to be
+unhelpful.
   }];
 }
 
@@ -4158,6 +4199,17 @@ The ``_Nullable`` nullability qualifier indicates that a value of the
     int fetch_or_zero(int * _Nullable ptr);
 
 a caller of ``fetch_or_zero`` can provide null.
+
+The ``_Nullable`` attribute on classes indicates that the given class can
+represent null values, and so the ``_Nullable``, ``_Nonnull`` etc qualifiers
+make sense for this type. For example:
+
+  .. code-block:: c
+
+    class _Nullable ArenaPointer { ... };
+
+    ArenaPointer _Nonnull x = ...;
+    ArenaPointer _Nullable y = nullptr;
   }];
 }
 

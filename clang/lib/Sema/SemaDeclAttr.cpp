@@ -3787,6 +3787,30 @@ static void handleCleanupAttr(Sema &S, Decl *D, const ParsedAttr &AL) {
       << NI.getName() << ParamTy << Ty;
     return;
   }
+  VarDecl *VD = cast<VarDecl>(D);
+  // Create a reference to the variable declaration. This is a fake/dummy
+  // reference.
+  DeclRefExpr *VariableReference = DeclRefExpr::Create(
+      S.Context, NestedNameSpecifierLoc{}, FD->getLocation(), VD, false,
+      DeclarationNameInfo{VD->getDeclName(), VD->getLocation()}, VD->getType(),
+      VK_LValue);
+
+  // Create a unary operator expression that represents taking the address of
+  // the variable. This is a fake/dummy expression.
+  Expr *AddressOfVariable = UnaryOperator::Create(
+      S.Context, VariableReference, UnaryOperatorKind::UO_AddrOf,
+      S.Context.getPointerType(VD->getType()), VK_PRValue, OK_Ordinary, Loc,
+      +false, FPOptionsOverride{});
+
+  // Create a function call expression. This is a fake/dummy call expression.
+  CallExpr *FunctionCallExpression =
+      CallExpr::Create(S.Context, E, ArrayRef{AddressOfVariable},
+                       S.Context.VoidTy, VK_PRValue, Loc, FPOptionsOverride{});
+
+  if (S.CheckFunctionCall(FD, FunctionCallExpression,
+                          FD->getType()->getAs<FunctionProtoType>())) {
+    return;
+  }
 
   D->addAttr(::new (S.Context) CleanupAttr(S.Context, AL, FD));
 }
@@ -5952,6 +5976,20 @@ static void handleBuiltinAliasAttr(Sema &S, Decl *D,
   D->addAttr(::new (S.Context) BuiltinAliasAttr(S.Context, AL, Ident));
 }
 
+static void handleNullableTypeAttr(Sema &S, Decl *D, const ParsedAttr &AL) {
+  if (AL.isUsedAsTypeAttr())
+    return;
+
+  if (auto *CRD = dyn_cast<CXXRecordDecl>(D);
+      !CRD || !(CRD->isClass() || CRD->isStruct())) {
+    S.Diag(AL.getRange().getBegin(), diag::err_attribute_wrong_decl_type_str)
+        << AL << AL.isRegularKeywordAttribute() << "classes";
+    return;
+  }
+
+  handleSimpleAttribute<TypeNullableAttr>(S, D, AL);
+}
+
 static void handlePreferredTypeAttr(Sema &S, Decl *D, const ParsedAttr &AL) {
   if (!AL.hasParsedType()) {
     S.Diag(AL.getLoc(), diag::err_attribute_wrong_number_arguments) << AL << 1;
@@ -8079,6 +8117,65 @@ static void handleAMDGPUNumVGPRAttr(Sema &S, Decl *D, const ParsedAttr &AL) {
   D->addAttr(::new (S.Context) AMDGPUNumVGPRAttr(S.Context, AL, NumVGPR));
 }
 
+static bool
+checkAMDGPUMaxNumWorkGroupsArguments(Sema &S, Expr *XExpr, Expr *YExpr,
+                                     Expr *ZExpr,
+                                     const AMDGPUMaxNumWorkGroupsAttr &Attr) {
+  if (S.DiagnoseUnexpandedParameterPack(XExpr) ||
+      (YExpr && S.DiagnoseUnexpandedParameterPack(YExpr)) ||
+      (ZExpr && S.DiagnoseUnexpandedParameterPack(ZExpr)))
+    return true;
+
+  // Accept template arguments for now as they depend on something else.
+  // We'll get to check them when they eventually get instantiated.
+  if (XExpr->isValueDependent() || (YExpr && YExpr->isValueDependent()) ||
+      (ZExpr && ZExpr->isValueDependent()))
+    return false;
+
+  uint32_t NumWG = 0;
+  Expr *Exprs[3] = {XExpr, YExpr, ZExpr};
+  for (int i = 0; i < 3; i++) {
+    if (Exprs[i]) {
+      if (!checkUInt32Argument(S, Attr, Exprs[i], NumWG, i,
+                               /*StrictlyUnsigned=*/true))
+        return true;
+      if (NumWG == 0) {
+        S.Diag(Attr.getLoc(), diag::err_attribute_argument_is_zero)
+            << &Attr << Exprs[i]->getSourceRange();
+        return true;
+      }
+    }
+  }
+
+  return false;
+}
+
+AMDGPUMaxNumWorkGroupsAttr *
+Sema::CreateAMDGPUMaxNumWorkGroupsAttr(const AttributeCommonInfo &CI,
+                                       Expr *XExpr, Expr *YExpr, Expr *ZExpr) {
+  AMDGPUMaxNumWorkGroupsAttr TmpAttr(Context, CI, XExpr, YExpr, ZExpr);
+
+  if (checkAMDGPUMaxNumWorkGroupsArguments(*this, XExpr, YExpr, ZExpr, TmpAttr))
+    return nullptr;
+
+  return ::new (Context)
+      AMDGPUMaxNumWorkGroupsAttr(Context, CI, XExpr, YExpr, ZExpr);
+}
+
+void Sema::addAMDGPUMaxNumWorkGroupsAttr(Decl *D, const AttributeCommonInfo &CI,
+                                         Expr *XExpr, Expr *YExpr,
+                                         Expr *ZExpr) {
+  if (auto *Attr = CreateAMDGPUMaxNumWorkGroupsAttr(CI, XExpr, YExpr, ZExpr))
+    D->addAttr(Attr);
+}
+
+static void handleAMDGPUMaxNumWorkGroupsAttr(Sema &S, Decl *D,
+                                             const ParsedAttr &AL) {
+  Expr *YExpr = (AL.getNumArgs() > 1) ? AL.getArgAsExpr(1) : nullptr;
+  Expr *ZExpr = (AL.getNumArgs() > 2) ? AL.getArgAsExpr(2) : nullptr;
+  S.addAMDGPUMaxNumWorkGroupsAttr(D, AL, AL.getArgAsExpr(0), YExpr, ZExpr);
+}
+
 static void handleX86ForceAlignArgPointerAttr(Sema &S, Decl *D,
                                               const ParsedAttr &AL) {
   // If we try to apply it to a function pointer, don't warn, but don't
@@ -9183,6 +9280,9 @@ ProcessDeclAttribute(Sema &S, Scope *scope, Decl *D, const ParsedAttr &AL,
   case ParsedAttr::AT_AMDGPUNumVGPR:
     handleAMDGPUNumVGPRAttr(S, D, AL);
     break;
+  case ParsedAttr::AT_AMDGPUMaxNumWorkGroups:
+    handleAMDGPUMaxNumWorkGroupsAttr(S, D, AL);
+    break;
   case ParsedAttr::AT_AVRSignal:
     handleAVRSignalAttr(S, D, AL);
     break;
@@ -9858,6 +9958,10 @@ ProcessDeclAttribute(Sema &S, Scope *scope, Decl *D, const ParsedAttr &AL,
 
   case ParsedAttr::AT_UsingIfExists:
     handleSimpleAttribute<UsingIfExistsAttr>(S, D, AL);
+    break;
+
+  case ParsedAttr::AT_TypeNullable:
+    handleNullableTypeAttr(S, D, AL);
     break;
   }
 }

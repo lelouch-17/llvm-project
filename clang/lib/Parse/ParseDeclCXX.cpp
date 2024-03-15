@@ -1494,6 +1494,15 @@ void Parser::ParseMicrosoftInheritanceClassAttributes(ParsedAttributes &attrs) {
   }
 }
 
+void Parser::ParseNullabilityClassAttributes(ParsedAttributes &attrs) {
+  while (Tok.is(tok::kw__Nullable)) {
+    IdentifierInfo *AttrName = Tok.getIdentifierInfo();
+    auto Kind = Tok.getKind();
+    SourceLocation AttrNameLoc = ConsumeToken();
+    attrs.addNew(AttrName, AttrNameLoc, nullptr, AttrNameLoc, nullptr, 0, Kind);
+  }
+}
+
 /// Determine whether the following tokens are valid after a type-specifier
 /// which could be a standalone declaration. This will conservatively return
 /// true if there's any doubt, and is appropriate for insert-';' fixits.
@@ -1675,15 +1684,21 @@ void Parser::ParseClassSpecifier(tok::TokenKind TagTokKind,
 
   ParsedAttributes attrs(AttrFactory);
   // If attributes exist after tag, parse them.
-  MaybeParseAttributes(PAKM_CXX11 | PAKM_Declspec | PAKM_GNU, attrs);
-
-  // Parse inheritance specifiers.
-  if (Tok.isOneOf(tok::kw___single_inheritance, tok::kw___multiple_inheritance,
-                  tok::kw___virtual_inheritance))
-    ParseMicrosoftInheritanceClassAttributes(attrs);
-
-  // Allow attributes to precede or succeed the inheritance specifiers.
-  MaybeParseAttributes(PAKM_CXX11 | PAKM_Declspec | PAKM_GNU, attrs);
+  for (;;) {
+    MaybeParseAttributes(PAKM_CXX11 | PAKM_Declspec | PAKM_GNU, attrs);
+    // Parse inheritance specifiers.
+    if (Tok.isOneOf(tok::kw___single_inheritance,
+                    tok::kw___multiple_inheritance,
+                    tok::kw___virtual_inheritance)) {
+      ParseMicrosoftInheritanceClassAttributes(attrs);
+      continue;
+    }
+    if (Tok.is(tok::kw__Nullable)) {
+      ParseNullabilityClassAttributes(attrs);
+      continue;
+    }
+    break;
+  }
 
   // Source location used by FIXIT to insert misplaced
   // C++11 attributes
@@ -4634,7 +4649,9 @@ bool Parser::ParseCXX11AttributeArgs(
     return true;
   }
 
-  if (ScopeName && ScopeName->isStr("omp")) {
+  // [[omp::directive]] and [[omp::sequence]] need special handling.
+  if (ScopeName && ScopeName->isStr("omp") &&
+      (AttrName->isStr("directive") || AttrName->isStr("sequence"))) {
     Diag(AttrNameLoc, getLangOpts().OpenMP >= 51
                           ? diag::warn_omp51_compat_attributes
                           : diag::ext_omp_attributes);

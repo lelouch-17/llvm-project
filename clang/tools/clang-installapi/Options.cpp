@@ -85,6 +85,9 @@ bool Options::processLinkerOptions(InputArgList &Args) {
   if (auto *Arg = Args.getLastArg(OPT_current__version))
     LinkerOpts.CurrentVersion.parse64(Arg->getValue());
 
+  if (auto *Arg = Args.getLastArg(OPT_compatibility__version))
+    LinkerOpts.CompatVersion.parse64(Arg->getValue());
+
   LinkerOpts.IsDylib = Args.hasArg(OPT_dynamiclib);
 
   LinkerOpts.AppExtensionSafe =
@@ -99,6 +102,33 @@ bool Options::processLinkerOptions(InputArgList &Args) {
   return true;
 }
 
+bool Options::processFrontendOptions(InputArgList &Args) {
+  // Do not claim any arguments, as they will be passed along for CC1
+  // invocations.
+  if (auto *A = Args.getLastArgNoClaim(OPT_x)) {
+    FEOpts.LangMode = llvm::StringSwitch<clang::Language>(A->getValue())
+                          .Case("c", clang::Language::C)
+                          .Case("c++", clang::Language::CXX)
+                          .Case("objective-c", clang::Language::ObjC)
+                          .Case("objective-c++", clang::Language::ObjCXX)
+                          .Default(clang::Language::Unknown);
+
+    if (FEOpts.LangMode == clang::Language::Unknown) {
+      Diags->Report(clang::diag::err_drv_invalid_value)
+          << A->getAsString(Args) << A->getValue();
+      return false;
+    }
+  }
+  for (auto *A : Args.filtered(OPT_ObjC, OPT_ObjCXX)) {
+    if (A->getOption().matches(OPT_ObjC))
+      FEOpts.LangMode = clang::Language::ObjC;
+    else
+      FEOpts.LangMode = clang::Language::ObjCXX;
+  }
+
+  return true;
+}
+
 Options::Options(DiagnosticsEngine &Diag, FileManager *FM,
                  InputArgList &ArgList)
     : Diags(&Diag), FM(FM) {
@@ -108,7 +138,10 @@ Options::Options(DiagnosticsEngine &Diag, FileManager *FM,
   if (!processLinkerOptions(ArgList))
     return;
 
-  /// Any remaining arguments should be handled by invoking the clang frontend.
+  if (!processFrontendOptions(ArgList))
+    return;
+
+  /// Any unclaimed arguments should be handled by invoking the clang frontend.
   for (const Arg *A : ArgList) {
     if (A->isClaimed())
       continue;
@@ -129,9 +162,11 @@ InstallAPIContext Options::createContext() {
 
   Ctx.BA.InstallName = LinkerOpts.InstallName;
   Ctx.BA.CurrentVersion = LinkerOpts.CurrentVersion;
+  Ctx.BA.CompatVersion = LinkerOpts.CompatVersion;
   Ctx.BA.AppExtensionSafe = LinkerOpts.AppExtensionSafe;
   Ctx.FT = DriverOpts.OutFT;
   Ctx.OutputLoc = DriverOpts.OutputPath;
+  Ctx.LangMode = FEOpts.LangMode;
 
   // Process inputs.
   for (const std::string &ListPath : DriverOpts.FileLists) {

@@ -1236,8 +1236,8 @@ void PPCAsmPrinter::emitInstruction(const MachineInstr *MI) {
     EmitToStreamer(*OutStreamer, TmpInst);
     return;
   }
-  case PPC::ADDItocL: {
-    // Transform %xd = ADDItocL %xs, @sym
+  case PPC::ADDItocL8: {
+    // Transform %xd = ADDItocL8 %xs, @sym
     LowerPPCMachineInstrToMCInst(MI, TmpInst, *this);
 
     // Change the opcode to ADDI8. If the global address is external, then
@@ -1246,7 +1246,7 @@ void PPCAsmPrinter::emitInstruction(const MachineInstr *MI) {
     TmpInst.setOpcode(PPC::ADDI8);
 
     const MachineOperand &MO = MI->getOperand(2);
-    assert((MO.isGlobal() || MO.isCPI()) && "Invalid operand for ADDItocL.");
+    assert((MO.isGlobal() || MO.isCPI()) && "Invalid operand for ADDItocL8.");
 
     LLVM_DEBUG(assert(
         !(MO.isGlobal() && Subtarget->isGVIndirectSymbol(MO.getGlobal())) &&
@@ -2651,6 +2651,27 @@ uint64_t PPCAIXAsmPrinter::getAliasOffset(const Constant *C) {
   return 0;
 }
 
+static void tocDataChecks(unsigned PointerSize, const GlobalVariable *GV) {
+  // TODO: These asserts should be updated as more support for the toc data
+  // transformation is added (struct support, etc.).
+  assert(
+      PointerSize >= GV->getAlign().valueOrOne().value() &&
+      "GlobalVariables with an alignment requirement stricter than TOC entry "
+      "size not supported by the toc data transformation.");
+
+  Type *GVType = GV->getValueType();
+  assert(GVType->isSized() && "A GlobalVariable's size must be known to be "
+                              "supported by the toc data transformation.");
+  if (GV->getParent()->getDataLayout().getTypeSizeInBits(GVType) >
+      PointerSize * 8)
+    report_fatal_error(
+        "A GlobalVariable with size larger than a TOC entry is not currently "
+        "supported by the toc data transformation.");
+  if (GV->hasPrivateLinkage())
+    report_fatal_error("A GlobalVariable with private linkage is not "
+                       "currently supported by the toc data transformation.");
+}
+
 void PPCAIXAsmPrinter::emitGlobalVariable(const GlobalVariable *GV) {
   // Special LLVM global arrays have been handled at the initialization.
   if (isSpecialLLVMGlobalArrayToSkip(GV) || isSpecialLLVMGlobalArrayForStaticInit(GV))
@@ -2659,6 +2680,8 @@ void PPCAIXAsmPrinter::emitGlobalVariable(const GlobalVariable *GV) {
   // If the Global Variable has the toc-data attribute, it needs to be emitted
   // when we emit the .toc section.
   if (GV->hasAttribute("toc-data")) {
+    unsigned PointerSize = GV->getParent()->getDataLayout().getPointerSize();
+    tocDataChecks(PointerSize, GV);
     TOCDataGlobalVars.push_back(GV);
     return;
   }

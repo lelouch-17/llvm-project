@@ -5460,7 +5460,13 @@ RValue CodeGenFunction::EmitBuiltinExpr(const GlobalDecl GD, unsigned BuiltinID,
   }
 
   // OpenCL v2.0, s6.13.17 - Enqueue kernel function.
-  // It contains four different overload formats specified in Table 6.13.17.1.
+  // Table 6.13.17.1 specifies four overload forms of enqueue_kernel.
+  // The code below expands the builtin call to a call to one of the following
+  // functions that an OpenCL runtime library will have to provide:
+  //   __enqueue_kernel_basic
+  //   __enqueue_kernel_varargs
+  //   __enqueue_kernel_basic_events
+  //   __enqueue_kernel_events_varargs
   case Builtin::BIenqueue_kernel: {
     StringRef Name; // Generated function call name
     unsigned NumArgs = E->getNumArgs();
@@ -10678,6 +10684,12 @@ Value *CodeGenFunction::EmitAArch64BuiltinExpr(unsigned BuiltinID,
   if (HintID != static_cast<unsigned>(-1)) {
     Function *F = CGM.getIntrinsic(Intrinsic::aarch64_hint);
     return Builder.CreateCall(F, llvm::ConstantInt::get(Int32Ty, HintID));
+  }
+
+  if (BuiltinID == clang::AArch64::BI__builtin_arm_trap) {
+    Function *F = CGM.getIntrinsic(Intrinsic::aarch64_break);
+    llvm::Value *Arg = EmitScalarExpr(E->getArg(0));
+    return Builder.CreateCall(F, Builder.CreateZExt(Arg, CGM.Int32Ty));
   }
 
   if (BuiltinID == clang::AArch64::BI__builtin_arm_get_sme_state) {
@@ -18009,38 +18021,11 @@ Value *CodeGenFunction::EmitHLSLBuiltinExpr(unsigned BuiltinID,
     Value *X = EmitScalarExpr(E->getArg(0));
     Value *Y = EmitScalarExpr(E->getArg(1));
     Value *S = EmitScalarExpr(E->getArg(2));
-    llvm::Type *Xty = X->getType();
-    llvm::Type *Yty = Y->getType();
-    llvm::Type *Sty = S->getType();
-    if (!Xty->isVectorTy() && !Yty->isVectorTy() && !Sty->isVectorTy()) {
-      if (Xty->isFloatingPointTy()) {
-        auto V = Builder.CreateFSub(Y, X);
-        V = Builder.CreateFMul(S, V);
-        return Builder.CreateFAdd(X, V, "dx.lerp");
-      }
-      llvm_unreachable("Scalar Lerp is only supported on floats.");
-    }
-    // A VectorSplat should have happened
-    assert(Xty->isVectorTy() && Yty->isVectorTy() && Sty->isVectorTy() &&
-           "Lerp of vector and scalar is not supported.");
-
-    [[maybe_unused]] auto *XVecTy =
-        E->getArg(0)->getType()->getAs<VectorType>();
-    [[maybe_unused]] auto *YVecTy =
-        E->getArg(1)->getType()->getAs<VectorType>();
-    [[maybe_unused]] auto *SVecTy =
-        E->getArg(2)->getType()->getAs<VectorType>();
-    // A HLSLVectorTruncation should have happend
-    assert(XVecTy->getNumElements() == YVecTy->getNumElements() &&
-           XVecTy->getNumElements() == SVecTy->getNumElements() &&
-           "Lerp requires vectors to be of the same size.");
-    assert(XVecTy->getElementType()->isRealFloatingType() &&
-           XVecTy->getElementType() == YVecTy->getElementType() &&
-           XVecTy->getElementType() == SVecTy->getElementType() &&
-           "Lerp requires float vectors to be of the same type.");
+    if (!E->getArg(0)->getType()->hasFloatingRepresentation())
+      llvm_unreachable("lerp operand must have a float representation");
     return Builder.CreateIntrinsic(
-        /*ReturnType=*/Xty, Intrinsic::dx_lerp, ArrayRef<Value *>{X, Y, S},
-        nullptr, "dx.lerp");
+        /*ReturnType=*/X->getType(), Intrinsic::dx_lerp,
+        ArrayRef<Value *>{X, Y, S}, nullptr, "dx.lerp");
   }
   case Builtin::BI__builtin_hlsl_elementwise_frac: {
     Value *Op0 = EmitScalarExpr(E->getArg(0));
@@ -18049,6 +18034,20 @@ Value *CodeGenFunction::EmitHLSLBuiltinExpr(unsigned BuiltinID,
     return Builder.CreateIntrinsic(
         /*ReturnType=*/Op0->getType(), Intrinsic::dx_frac,
         ArrayRef<Value *>{Op0}, nullptr, "dx.frac");
+  }
+  case Builtin::BI__builtin_hlsl_elementwise_isinf: {
+    Value *Op0 = EmitScalarExpr(E->getArg(0));
+    llvm::Type *Xty = Op0->getType();
+    llvm::Type *retType = llvm::Type::getInt1Ty(this->getLLVMContext());
+    if (Xty->isVectorTy()) {
+      auto *XVecTy = E->getArg(0)->getType()->getAs<VectorType>();
+      retType = llvm::VectorType::get(
+          retType, ElementCount::getFixed(XVecTy->getNumElements()));
+    }
+    if (!E->getArg(0)->getType()->hasFloatingRepresentation())
+      llvm_unreachable("isinf operand must have a float representation");
+    return Builder.CreateIntrinsic(retType, Intrinsic::dx_isinf,
+                                   ArrayRef<Value *>{Op0}, nullptr, "dx.isinf");
   }
   case Builtin::BI__builtin_hlsl_mad: {
     Value *M = EmitScalarExpr(E->getArg(0));
@@ -18076,6 +18075,14 @@ Value *CodeGenFunction::EmitHLSLBuiltinExpr(unsigned BuiltinID,
     return Builder.CreateIntrinsic(
         /*ReturnType=*/Op0->getType(), Intrinsic::dx_rcp,
         ArrayRef<Value *>{Op0}, nullptr, "dx.rcp");
+  }
+  case Builtin::BI__builtin_hlsl_elementwise_rsqrt: {
+    Value *Op0 = EmitScalarExpr(E->getArg(0));
+    if (!E->getArg(0)->getType()->hasFloatingRepresentation())
+      llvm_unreachable("rsqrt operand must have a float representation");
+    return Builder.CreateIntrinsic(
+        /*ReturnType=*/Op0->getType(), Intrinsic::dx_rsqrt,
+        ArrayRef<Value *>{Op0}, nullptr, "dx.rsqrt");
   }
   }
   return nullptr;
