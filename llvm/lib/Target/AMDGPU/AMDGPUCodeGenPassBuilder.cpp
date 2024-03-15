@@ -17,6 +17,12 @@
 #include "llvm/Passes/CodeGenPassBuilder.h"
 #include "llvm/MC/MCStreamer.h"
 
+#include "llvm/Transforms/Scalar/SeparateConstOffsetFromGEP.h"
+#include "llvm/Transforms/Scalar/StraightLineStrengthReduce.h"
+#include "llvm/Transforms/Scalar/NaryReassociate.h"
+#include "llvm/Transforms/Scalar/GVN.h"
+#include "llvm/MC/MCStreamer.h"
+
 #include "AMDGPU.h"
 #include "AMDGPUAliasAnalysis.h"
 #include "AMDGPUCtorDtorLowering.h"
@@ -46,6 +52,7 @@
 #include "llvm/CodeGen/GlobalISel/RegBankSelect.h"
 #include "llvm/CodeGen/MIRParser/MIParser.h"
 #include "llvm/CodeGen/Passes.h"
+#include "llvm/Transforms/Scalar/EarlyCSE.h"
 #include "llvm/CodeGen/RegAllocRegistry.h"
 #include "llvm/CodeGen/TargetPassConfig.h"
 #include "llvm/IR/IntrinsicsAMDGPU.h"
@@ -145,10 +152,35 @@ public:
   void addPreEmitPass2(AddMachinePass &) const;
   void addPreSched2(AddMachinePass &) const;
   void addAsmPrinter(AddMachinePass &, CreateMCStreamer) const;
-
+  void addStraightLineScalarOptimizationPasses(AddIRPass &) const;
+  void addEarlyCSEOrGVNPass(AddIRPass &) const;
 };
 
 } // namespace
+
+void AMDGPUCodeGenPassBuilder::addEarlyCSEOrGVNPass(AddIRPass &addPass) const {
+  if (getOptLevel() == CodeGenOptLevel::Aggressive)
+    addPass(GVNPass());
+  else
+    addPass(EarlyCSEPass());
+}
+
+void AMDGPUCodeGenPassBuilder::addStraightLineScalarOptimizationPasses(AddIRPass &addPass) const {
+  addPass(SeparateConstOffsetFromGEPPass());
+  // ReassociateGEPs exposes more opportunities for SLSR. See
+  // the example in reassociate-geps-and-slsr.ll.
+  addPass(StraightLineStrengthReducePass());
+  // SeparateConstOffsetFromGEP and SLSR creates common expressions which GVN or
+  // EarlyCSE can reuse.
+  // FIXME: Port this
+  AMDGPUCodeGenPassBuilder::addEarlyCSEOrGVNPass(addPass);
+  // Run NaryReassociate after EarlyCSE/GVN to be more effective.
+  addPass(NaryReassociatePass());
+  // NaryReassociate on GEPs creates redundant common expressions, so run
+  // EarlyCSE after it.
+  addPass(EarlyCSEPass());
+}
+
 void AMDGPUCodeGenPassBuilder::addIRPasses(AddIRPass &addPass) const {
 
   Triple::ArchType Arch = TM.getTargetTriple().getArch();
@@ -201,13 +233,13 @@ void AMDGPUCodeGenPassBuilder::addIRPasses(AddIRPass &addPass) const {
   //   addPass(AMDGPUAtomicOptimizerPass(TM, AMDGPUAtomicOptimizerStrategy));
   // }
 
-  //addPass(AtomicExpandPass());
+  //addPass(AtomicExpandPass()); Breaks_pipeline 
 
   if (TM.getOptLevel() > CodeGenOptLevel::None) {
     addPass(AMDGPUPromoteAllocaPass(TM));
 
     if (isPassEnabled(EnableScalarIRPasses))
-      CodeGenPassBuilder::addStraightLineScalarOptimizationPasses(addPass);
+      AMDGPUCodeGenPassBuilder::addStraightLineScalarOptimizationPasses(addPass);
 
     if (EnableAMDGPUAliasAnalysis) {
       addPass(AMDGPUAAWrapperPass());
@@ -247,8 +279,8 @@ void AMDGPUCodeGenPassBuilder::addIRPasses(AddIRPass &addPass) const {
   //   %1 = shl %a, 2
   //
   // but EarlyCSE can do neither of them.
-//  if (isPassEnabled(EnableScalarIRPasses))
-    CodeGenPassBuilder::addEarlyCSEOrGVNPass(addPass);
+  if (isPassEnabled(EnableScalarIRPasses))
+    AMDGPUCodeGenPassBuilder::addEarlyCSEOrGVNPass(addPass);
 }
 
 void AMDGPUCodeGenPassBuilder::addCodeGenPrepare(AddIRPass &addPass) const {

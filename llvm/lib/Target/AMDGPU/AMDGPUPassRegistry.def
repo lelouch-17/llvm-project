@@ -23,12 +23,19 @@ FUNCTION_PASS("amdgpu-promote-alloca", AMDGPUPromoteAllocaPass, (getTM<AMDGPUTar
 FUNCTION_PASS("amdgpu-codegenprepare", AMDGPUCodeGenPreparePass, (getTM<AMDGPUTargetMachine>()))
 FUNCTION_PASS("amdgpu-lower-kernel-arguments", AMDGPULowerKernelArgumentsPass, (getTM<AMDGPUTargetMachine>()))
 FUNCTION_PASS("amdgpu-rewrite-undef-for-phi", AMDGPURewriteUndefForPHIPass, ())
-FUNCTION_PASS("amdgpu-aa", AMDGPUAAWrapperPass, ())
+FUNCTION_PASS("load-store-vectorizer", LoadStoreVectorizerPass, ())
+FUNCTION_PASS("lowerswitch", LowerSwitchPass, ())
+FUNCTION_PASS("separate-const-offset-from-gep", SeparateConstOffsetFromGEPPass, ())
+FUNCTION_PASS("slsr", StraightLineStrengthReducePass, ())
+FUNCTION_PASS("nary-reassociate", NaryReassociatePass, ())
+FUNCTION_PASS("gvn", GVNPass, ())
+FUNCTION_PASS("early-cse", EarlyCSEPass, ())
 #undef FUNCTION_PASS
 
 #ifndef DUMMY_FUNCTION_PASS
 #define DUMMY_FUNCTION_PASS(NAME, PASS_NAME, CONSTRUCTOR)
 #endif
+DUMMY_FUNCTION_PASS("amdgpu-aa", AMDGPUAAWrapperPass, ())
 DUMMY_FUNCTION_PASS("amdgpu-annotate-kernel-features-dummy", AMDGPUAnnotateKernelFeaturesPass, ())
 DUMMY_FUNCTION_PASS("amdgpu-annotate-uniform-values-dummy", AMDGPUAnnotateUniformValuesPass, ())
 DUMMY_FUNCTION_PASS("si-annotate-control-flow-dummy", SIAnnotateControlFlowPass, ())
@@ -60,6 +67,7 @@ DUMMY_MODULE_PASS("amdgpu-remove-incompatible-functions-dummy", AMDGPURemoveInco
 
 #ifndef MACHINE_FUNCTION_PASS
 #define MACHINE_FUNCTION_PASS(NAME, PASS_NAME, CONSTRUCTOR)
+MACHINE_FUNCTION_PASS("free-machine-function", FreeMachineFunctionPass, ())
 #endif
 
 #undef MACHINE_FUNCTION_PASS
@@ -88,7 +96,8 @@ DUMMY_MACHINE_FUNCTION_PASS("si-memory-legalizer-dummy", SIMemoryLegalizerPass, 
 DUMMY_MACHINE_FUNCTION_PASS("si-insert-waitcnts-dummy", SIInsertWaitcntsPass, ())
 DUMMY_MACHINE_FUNCTION_PASS("si-mode-register-dummy", SIModeRegisterPass, ())
 DUMMY_MACHINE_FUNCTION_PASS("si-set-wave-priority", AMDGPUSetWavePriorityPass, ())
-
+DUMMY_MACHINE_FUNCTION_PASS("branch-relaxation", BranchRelaxationPass, ())
+DUMMY_MACHINE_FUNCTION_PASS("post-RA-hazard-recognizer", PostRAHazardRecognizerPass, ())
 DUMMY_MACHINE_FUNCTION_PASS("si-late-branch-lowering-dummy", SILateBranchLoweringPass, ())
 DUMMY_MACHINE_FUNCTION_PASS("amdgpu-asm-printer-dummy", AMDGPUAsmPrinterPass, ())
 DUMMY_MACHINE_FUNCTION_PASS("si-fold-operands-dummy", SIFoldOperandsPass, ())
