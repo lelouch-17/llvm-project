@@ -14,6 +14,8 @@
 #include "AMDGPUTargetMachine.h"
 #include "AMDGPUTargetMachine.cpp"
 
+ #include "AMDGPUCodeGenPassBuilder.h"
+
 #include "llvm/Passes/CodeGenPassBuilder.h"
 #include "llvm/MC/MCStreamer.h"
 
@@ -79,8 +81,6 @@
 using namespace llvm;
 using namespace llvm::PatternMatch;
 
-using namespace llvm;
-
 namespace {
 
 #define DUMMY_MODULE_PASS(NAME, PASS_NAME, CONSTRUCTOR)                        \
@@ -108,6 +108,7 @@ namespace {
   };                                                                           \
   AnalysisKey PASS_NAME::Key;
 #include "AMDGPUPassRegistry.def"
+
 class AMDGPUCodeGenPassBuilder
     : public CodeGenPassBuilder<AMDGPUCodeGenPassBuilder> {
 public:

@@ -99,17 +99,17 @@ static FunctionPass *useDefaultRegisterAllocator() { return nullptr; }
 static llvm::once_flag InitializeDefaultSGPRRegisterAllocatorFlag;
 static llvm::once_flag InitializeDefaultVGPRRegisterAllocatorFlag;
 
-extern SGPRRegisterRegAlloc
+static SGPRRegisterRegAlloc
 defaultSGPRRegAlloc("default",
                     "pick SGPR register allocator based on -O option",
                     useDefaultRegisterAllocator);
 
-extern cl::opt<SGPRRegisterRegAlloc::FunctionPassCtor, false,
+static cl::opt<SGPRRegisterRegAlloc::FunctionPassCtor, false,
                RegisterPassParser<SGPRRegisterRegAlloc>>
 SGPRRegAlloc("sgpr-regalloc", cl::Hidden, cl::init(&useDefaultRegisterAllocator),
              cl::desc("Register allocator to use for SGPRs"));
 
-extern cl::opt<VGPRRegisterRegAlloc::FunctionPassCtor, false,
+static cl::opt<VGPRRegisterRegAlloc::FunctionPassCtor, false,
                RegisterPassParser<VGPRRegisterRegAlloc>>
 VGPRRegAlloc("vgpr-regalloc", cl::Hidden, cl::init(&useDefaultRegisterAllocator),
              cl::desc("Register allocator to use for VGPRs"));
@@ -175,72 +175,72 @@ static VGPRRegisterRegAlloc fastRegAllocVGPR(
   "fast", "fast register allocator", createFastVGPRRegisterAllocator);
 }
 
-extern cl::opt<bool>
+ cl::opt<bool>
 EnableEarlyIfConversion("amdgpu-early-ifcvt", cl::Hidden,
                         cl::desc("Run early if-conversion"),
                         cl::init(false));
 
-extern cl::opt<bool>
+ cl::opt<bool>
 OptExecMaskPreRA("amdgpu-opt-exec-mask-pre-ra", cl::Hidden,
             cl::desc("Run pre-RA exec mask optimizations"),
             cl::init(true));
 
-extern cl::opt<bool>
+ cl::opt<bool>
     LowerCtorDtor("amdgpu-lower-global-ctor-dtor",
                   cl::desc("Lower GPU ctor / dtors to globals on the device."),
                   cl::init(true), cl::Hidden);
 
 // Option to disable vectorizer for tests.
-extern cl::opt<bool> EnableLoadStoreVectorizer(
+ cl::opt<bool> EnableLoadStoreVectorizer(
   "amdgpu-load-store-vectorizer",
   cl::desc("Enable load store vectorizer"),
   cl::init(true),
   cl::Hidden);
 
 // Option to control global loads scalarization
-extern cl::opt<bool> ScalarizeGlobal(
+ cl::opt<bool> ScalarizeGlobal(
   "amdgpu-scalarize-global-loads",
   cl::desc("Enable global load scalarization"),
   cl::init(true),
   cl::Hidden);
 
 // Option to run internalize pass.
-extern cl::opt<bool> InternalizeSymbols(
+ cl::opt<bool> InternalizeSymbols(
   "amdgpu-internalize-symbols",
   cl::desc("Enable elimination of non-kernel functions and unused globals"),
   cl::init(false),
   cl::Hidden);
 
 // Option to inline all early.
-extern cl::opt<bool> EarlyInlineAll(
+ cl::opt<bool> EarlyInlineAll(
   "amdgpu-early-inline-all",
   cl::desc("Inline all functions early"),
   cl::init(false),
   cl::Hidden);
 
-extern cl::opt<bool> RemoveIncompatibleFunctions(
+ cl::opt<bool> RemoveIncompatibleFunctions(
     "amdgpu-enable-remove-incompatible-functions", cl::Hidden,
     cl::desc("Enable removal of functions when they"
              "use features not supported by the target GPU"),
     cl::init(true));
 
-extern cl::opt<bool> EnableSDWAPeephole(
+ cl::opt<bool> EnableSDWAPeephole(
   "amdgpu-sdwa-peephole",
   cl::desc("Enable SDWA peepholer"),
   cl::init(true));
 
-extern cl::opt<bool> EnableDPPCombine(
+ cl::opt<bool> EnableDPPCombine(
   "amdgpu-dpp-combine",
   cl::desc("Enable DPP combiner"),
   cl::init(true));
 
 // Enable address space based alias analysis
-extern cl::opt<bool> EnableAMDGPUAliasAnalysis("enable-amdgpu-aa", cl::Hidden,
+ cl::opt<bool> EnableAMDGPUAliasAnalysis("enable-amdgpu-aa", cl::Hidden,
   cl::desc("Enable AMDGPU Alias Analysis"),
   cl::init(true));
 
 // Option to run late CFG structurizer
-extern cl::opt<bool, true> LateCFGStructurize(
+ cl::opt<bool, true> LateCFGStructurize(
   "amdgpu-late-structurize",
   cl::desc("Enable late CFG structurization"),
   cl::location(AMDGPUTargetMachine::EnableLateStructurizeCFG),
@@ -248,36 +248,36 @@ extern cl::opt<bool, true> LateCFGStructurize(
 
 // Disable structurizer-based control-flow lowering in order to test convergence
 // control tokens. This should eventually be replaced by the wave-transform.
-static cl::opt<bool, true> DisableStructurizer(
+ cl::opt<bool, true> DisableStructurizer(
     "amdgpu-disable-structurizer",
     cl::desc("Disable structurizer for experiments; produces unusable code"),
     cl::location(AMDGPUTargetMachine::DisableStructurizer), cl::ReallyHidden);
 
 // Enable lib calls simplifications
-extern cl::opt<bool> EnableLibCallSimplify(
+ cl::opt<bool> EnableLibCallSimplify(
   "amdgpu-simplify-libcall",
   cl::desc("Enable amdgpu library simplifications"),
   cl::init(true),
   cl::Hidden);
 
-extern cl::opt<bool> EnableLowerKernelArguments(
+ cl::opt<bool> EnableLowerKernelArguments(
   "amdgpu-ir-lower-kernel-arguments",
   cl::desc("Lower kernel argument loads in IR pass"),
   cl::init(true),
   cl::Hidden);
 
-extern cl::opt<bool> EnableRegReassign(
+ cl::opt<bool> EnableRegReassign(
   "amdgpu-reassign-regs",
   cl::desc("Enable register reassign optimizations on gfx10+"),
   cl::init(true),
   cl::Hidden);
 
-extern cl::opt<bool> OptVGPRLiveRange(
+ cl::opt<bool> OptVGPRLiveRange(
     "amdgpu-opt-vgpr-liverange",
     cl::desc("Enable VGPR liverange optimizations for if-else structure"),
     cl::init(true), cl::Hidden);
 
-extern cl::opt<ScanOptions> AMDGPUAtomicOptimizerStrategy(
+ cl::opt<ScanOptions> AMDGPUAtomicOptimizerStrategy(
     "amdgpu-atomic-optimizer-strategy",
     cl::desc("Select DPP or Iterative strategy for scan"),
     cl::init(ScanOptions::Iterative),
@@ -288,87 +288,87 @@ extern cl::opt<ScanOptions> AMDGPUAtomicOptimizerStrategy(
         clEnumValN(ScanOptions::None, "None", "Disable atomic optimizer")));
 
 // Enable Mode register optimization
-extern cl::opt<bool> EnableSIModeRegisterPass(
+ cl::opt<bool> EnableSIModeRegisterPass(
   "amdgpu-mode-register",
   cl::desc("Enable mode register pass"),
   cl::init(true),
   cl::Hidden);
 
 // Enable GFX11.5+ s_singleuse_vdst insertion
-extern cl::opt<bool>
+ cl::opt<bool>
     EnableInsertSingleUseVDST("amdgpu-enable-single-use-vdst",
                               cl::desc("Enable s_singleuse_vdst insertion"),
                               cl::init(false), cl::Hidden);
 
 // Enable GFX11+ s_delay_alu insertion
-extern cl::opt<bool>
+ cl::opt<bool>
     EnableInsertDelayAlu("amdgpu-enable-delay-alu",
                          cl::desc("Enable s_delay_alu insertion"),
                          cl::init(true), cl::Hidden);
 
 // Enable GFX11+ VOPD
-extern cl::opt<bool>
+ cl::opt<bool>
     EnableVOPD("amdgpu-enable-vopd",
                cl::desc("Enable VOPD, dual issue of VALU in wave32"),
                cl::init(true), cl::Hidden);
 
 // Option is used in lit tests to prevent deadcoding of patterns inspected.
-extern cl::opt<bool>
+ cl::opt<bool>
 EnableDCEInRA("amdgpu-dce-in-ra",
     cl::init(true), cl::Hidden,
     cl::desc("Enable machine DCE inside regalloc"));
 
-extern cl::opt<bool> EnableSetWavePriority("amdgpu-set-wave-priority",
+ cl::opt<bool> EnableSetWavePriority("amdgpu-set-wave-priority",
                                            cl::desc("Adjust wave priority"),
                                            cl::init(false), cl::Hidden);
 
-extern cl::opt<bool> EnableScalarIRPasses(
+ cl::opt<bool> EnableScalarIRPasses(
   "amdgpu-scalar-ir-passes",
   cl::desc("Enable scalar IR passes"),
   cl::init(true),
   cl::Hidden);
 
-extern cl::opt<bool> EnableStructurizerWorkarounds(
+ cl::opt<bool> EnableStructurizerWorkarounds(
     "amdgpu-enable-structurizer-workarounds",
     cl::desc("Enable workarounds for the StructurizeCFG pass"), cl::init(true),
     cl::Hidden);
 
-extern cl::opt<bool, true> EnableLowerModuleLDS(
+ cl::opt<bool, true> EnableLowerModuleLDS(
     "amdgpu-enable-lower-module-lds", cl::desc("Enable lower module lds pass"),
     cl::location(AMDGPUTargetMachine::EnableLowerModuleLDS), cl::init(true),
     cl::Hidden);
 
-extern cl::opt<bool> EnablePreRAOptimizations(
+ cl::opt<bool> EnablePreRAOptimizations(
     "amdgpu-enable-pre-ra-optimizations",
     cl::desc("Enable Pre-RA optimizations pass"), cl::init(true),
     cl::Hidden);
 
-extern cl::opt<bool> EnablePromoteKernelArguments(
+ cl::opt<bool> EnablePromoteKernelArguments(
     "amdgpu-enable-promote-kernel-arguments",
     cl::desc("Enable promotion of flat kernel pointer arguments to global"),
     cl::Hidden, cl::init(true));
 
-extern cl::opt<bool> EnableImageIntrinsicOptimizer(
+ cl::opt<bool> EnableImageIntrinsicOptimizer(
     "amdgpu-enable-image-intrinsic-optimizer",
     cl::desc("Enable image intrinsic optimizer pass"), cl::init(true),
     cl::Hidden);
 
-extern cl::opt<bool>
+ cl::opt<bool>
     EnableLoopPrefetch("amdgpu-loop-prefetch",
                        cl::desc("Enable loop data prefetch on AMDGPU"),
                        cl::Hidden, cl::init(false));
 
-extern cl::opt<bool> EnableMaxIlpSchedStrategy(
+ cl::opt<bool> EnableMaxIlpSchedStrategy(
     "amdgpu-enable-max-ilp-scheduling-strategy",
     cl::desc("Enable scheduling strategy to maximize ILP for a single wave."),
     cl::Hidden, cl::init(false));
 
-extern cl::opt<bool> EnableRewritePartialRegUses(
+ cl::opt<bool> EnableRewritePartialRegUses(
     "amdgpu-enable-rewrite-partial-reg-uses",
     cl::desc("Enable rewrite partial reg uses pass"), cl::init(true),
     cl::Hidden);
 
-extern cl::opt<bool> EnableHipStdPar(
+ cl::opt<bool> EnableHipStdPar(
   "amdgpu-enable-hipstdpar",
   cl::desc("Enable HIP Standard Parallelism Offload support"), cl::init(false),
   cl::Hidden);
