@@ -70,7 +70,7 @@ public:
 
   Error buildCodeGenPipeline(ModulePassManager &, raw_pwrite_stream &,
                              raw_pwrite_stream *, CodeGenFileType,
-                             CGPassBuilderOption,
+                             const CGPassBuilderOption &,
                              PassInstrumentationCallbacks *) override;
   
 

@@ -635,7 +635,7 @@ AMDGPUCodeGenPassBuilder::getTargetPassNameFromLegacyName(StringRef Name) const 
 // }
 Error AMDGPUTargetMachine::buildCodeGenPipeline(
     ModulePassManager &MPM, raw_pwrite_stream &Out, raw_pwrite_stream *DwoOut,
-    CodeGenFileType FileType, CGPassBuilderOption Opt,
+    CodeGenFileType FileType,const CGPassBuilderOption &Opt,
     PassInstrumentationCallbacks *PIC) {
   auto CGPB = AMDGPUCodeGenPassBuilder(*this, Opt, PIC);
   return CGPB.buildPipeline(MPM, Out, DwoOut, FileType);
