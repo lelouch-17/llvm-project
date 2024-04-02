@@ -68,7 +68,22 @@ public:
 
   unsigned getAddressSpaceForPseudoSourceKind(unsigned Kind) const override;
 
+  Error buildCodeGenPipeline(ModulePassManager &, raw_pwrite_stream &,
+                             raw_pwrite_stream *, CodeGenFileType,
+                             const CGPassBuilderOption &,
+                             PassInstrumentationCallbacks *) override;
   
+
+  void registerModuleAnalyses(ModuleAnalysisManager &);
+  void registerFunctionAnalyses(FunctionAnalysisManager &);
+  bool parseModulePass(StringRef, ModulePassManager &);
+  bool parseFunctionPass(StringRef, FunctionPassManager &);
+  // bool parseLoopPass(StringRef, LoopPassManager &);
+
+  // std::pair<StringRef, bool> getPassNameFromLegacyName(StringRef) override;
+
+  // Error parseMIRPipeline(MachineFunctionPassManager &MFPM, 
+  //                                     StringRef PipelineText) override;
 };
 
 //===----------------------------------------------------------------------===//
@@ -109,23 +124,6 @@ public:
                                 PerFunctionMIParsingState &PFS,
                                 SMDiagnostic &Error,
                                 SMRange &SourceRange) const override;
-
-  Error buildCodeGenPipeline(ModulePassManager &, raw_pwrite_stream &,
-                             raw_pwrite_stream *, CodeGenFileType,
-                             const CGPassBuilderOption &,
-                             PassInstrumentationCallbacks *) override;
-  
-
-  void registerModuleAnalyses(ModuleAnalysisManager &);
-  void registerFunctionAnalyses(FunctionAnalysisManager &);
-  bool parseModulePass(StringRef, ModulePassManager &);
-  bool parseFunctionPass(StringRef, FunctionPassManager &);
-  // bool parseLoopPass(StringRef, LoopPassManager &);
-
-  // std::pair<StringRef, bool> getPassNameFromLegacyName(StringRef) override;
-
-  // Error parseMIRPipeline(MachineFunctionPassManager &MFPM, 
-  //                                     StringRef PipelineText) override;
 };
 
 //===----------------------------------------------------------------------===//
