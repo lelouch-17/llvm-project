@@ -158,7 +158,7 @@ public:
   void addILPOpts(AddMachinePass &) const;
   Error addInstSelector(AddMachinePass &) const;
   Error addIRTranslator(AddMachinePass &) const;
- // void addPreLegalizeMachineIR(AddMachinePass &) const;  //TODO
+  void addPreLegalizeMachineIR(AddMachinePass &) const;
   Error addLegalizeMachineIR(AddMachinePass &) const;
   Error addPreRegBankSelect(AddMachinePass &) const;
   Error addRegBankSelect(AddMachinePass &) const;
@@ -216,6 +216,12 @@ void GCNCodeGenPassBuilder::addILPOpts(AddMachinePass &addPass) const {
 Error GCNCodeGenPassBuilder::addIRTranslator(AddMachinePass &addPass) const {
   addPass(IRTranslatorPass());
   return Error::success();
+}
+void GCNCodeGenPassBuilder::addPreLegalizeMachineIR(AddMachinePass &addPass) const {
+  bool IsOptNone = getOptLevel() == CodeGenOptLevel::None;
+  addPass(AMDGPUPreLegalizerCombinerPass(IsOptNone));
+ // addPass(new Localizer());  FIX
+  return ;
 }
 Error GCNCodeGenPassBuilder::addLegalizeMachineIR(
     AddMachinePass &addPass) const {
