@@ -130,7 +130,9 @@ public:
       return false;
     return Opt;
   }
-  
+  AMDGPUTargetMachine &getAMDGPUTargetMachine() const {
+    return CodeGenPassBuilder<DerivedT>::template getTM<AMDGPUTargetMachine>();
+  }
   void addIRPasses(typename CodeGenPassBuilder<DerivedT>::AddIRPass &) const;
   void addCodeGenPrepare(typename CodeGenPassBuilder<DerivedT>::AddIRPass &) const;
   void addPreISel(typename CodeGenPassBuilder<DerivedT>::AddIRPass &) const;
@@ -154,7 +156,7 @@ public:
   void addPreISel(AddIRPass &) const;
   void addMachineSSAOptimization(AddMachinePass &) const;
   void addILPOpts(AddMachinePass &) const;
-//  Error addInstSelector(AddMachinePass &) const; //TODO
+  Error addInstSelector(AddMachinePass &) const;
   Error addIRTranslator(AddMachinePass &) const;
  // void addPreLegalizeMachineIR(AddMachinePass &) const;  //TODO
   Error addLegalizeMachineIR(AddMachinePass &) const;
@@ -218,6 +220,13 @@ Error GCNCodeGenPassBuilder::addIRTranslator(AddMachinePass &addPass) const {
 Error GCNCodeGenPassBuilder::addLegalizeMachineIR(
     AddMachinePass &addPass) const {
   addPass(LegalizerPass());
+  return Error::success();
+}
+Error GCNCodeGenPassBuilder::addInstSelector(
+    AddMachinePass &addPass) const {
+  AMDGPUCodeGenPassBuilder<GCNCodeGenPassBuilder>::addInstSelector(addPass);
+  addPass(SIFixSGPRCopiesPass());
+  addPass(SILowerI1CopiesPass());
   return Error::success();
 }
 Error GCNCodeGenPassBuilder::addPreRegBankSelect(AddMachinePass &addPass) const {
@@ -383,8 +392,7 @@ void GCNCodeGenPassBuilder::addPreISel(AddIRPass &addPass) const {
 // and GCNPassConfig::addInstSelector
 template <typename DerivedT>
 Error AMDGPUCodeGenPassBuilder<DerivedT>::addInstSelector(typename CodeGenPassBuilder<DerivedT>::AddMachinePass &addPass) const {
-  // Install an instruction selector.
-
+  addPass(AMDGPUDAGToDAGISelPass(getAMDGPUTargetMachine(), CodeGenPassBuilder<DerivedT>::getOptLevel()));
   return Error::success();
 }
 
