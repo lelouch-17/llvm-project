@@ -67,7 +67,7 @@
 using namespace llvm;
 using namespace llvm::PatternMatch;
 
-namespace {
+// Removed Namespace
 class SGPRRegisterRegAlloc : public RegisterRegAllocBase<SGPRRegisterRegAlloc> {
 public:
   SGPRRegisterRegAlloc(const char *N, const char *D, FunctionPassCtor C)
@@ -104,16 +104,17 @@ defaultSGPRRegAlloc("default",
                     "pick SGPR register allocator based on -O option",
                     useDefaultRegisterAllocator);
 
-static cl::opt<SGPRRegisterRegAlloc::FunctionPassCtor, false,
-               RegisterPassParser<SGPRRegisterRegAlloc>>
-SGPRRegAlloc("sgpr-regalloc", cl::Hidden, cl::init(&useDefaultRegisterAllocator),
-             cl::desc("Register allocator to use for SGPRs"));
+cl::opt<SGPRRegisterRegAlloc::FunctionPassCtor, false,
+        RegisterPassParser<SGPRRegisterRegAlloc>>
+    SGPRRegAlloc("sgpr-regalloc", cl::Hidden,
+                 cl::init(&useDefaultRegisterAllocator),
+                 cl::desc("Register allocator to use for SGPRs"));
 
-static cl::opt<VGPRRegisterRegAlloc::FunctionPassCtor, false,
-               RegisterPassParser<VGPRRegisterRegAlloc>>
-VGPRRegAlloc("vgpr-regalloc", cl::Hidden, cl::init(&useDefaultRegisterAllocator),
-             cl::desc("Register allocator to use for VGPRs"));
-
+cl::opt<VGPRRegisterRegAlloc::FunctionPassCtor, false,
+        RegisterPassParser<VGPRRegisterRegAlloc>>
+    VGPRRegAlloc("vgpr-regalloc", cl::Hidden,
+                 cl::init(&useDefaultRegisterAllocator),
+                 cl::desc("Register allocator to use for VGPRs"));
 
 static void initializeDefaultSGPRRegisterAllocatorOnce() {
   RegisterRegAlloc::FunctionPassCtor Ctor = SGPRRegisterRegAlloc::getDefault();
@@ -171,21 +172,18 @@ static VGPRRegisterRegAlloc basicRegAllocVGPR(
 static VGPRRegisterRegAlloc greedyRegAllocVGPR(
   "greedy", "greedy register allocator", createGreedyVGPRRegisterAllocator);
 
-static VGPRRegisterRegAlloc fastRegAllocVGPR(
-  "fast", "fast register allocator", createFastVGPRRegisterAllocator);
-}
+static VGPRRegisterRegAlloc fastRegAllocVGPR("fast", "fast register allocator",
+                                             createFastVGPRRegisterAllocator);
 
- cl::opt<bool>
-EnableEarlyIfConversion("amdgpu-early-ifcvt", cl::Hidden,
-                        cl::desc("Run early if-conversion"),
-                        cl::init(false));
+cl::opt<bool> EnableEarlyIfConversion("amdgpu-early-ifcvt", cl::Hidden,
+                                      cl::desc("Run early if-conversion"),
+                                      cl::init(false));
 
- cl::opt<bool>
-OptExecMaskPreRA("amdgpu-opt-exec-mask-pre-ra", cl::Hidden,
-            cl::desc("Run pre-RA exec mask optimizations"),
-            cl::init(true));
+cl::opt<bool> OptExecMaskPreRA("amdgpu-opt-exec-mask-pre-ra", cl::Hidden,
+                               cl::desc("Run pre-RA exec mask optimizations"),
+                               cl::init(true));
 
- cl::opt<bool>
+cl::opt<bool>
     LowerCtorDtor("amdgpu-lower-global-ctor-dtor",
                   cl::desc("Lower GPU ctor / dtors to globals on the device."),
                   cl::init(true), cl::Hidden);
@@ -649,8 +647,8 @@ parseAMDGPUAtomicOptimizerStrategy(StringRef Params) {
 void AMDGPUTargetMachine::registerPassBuilderCallbacks(
     PassBuilder &PB, bool PopulateClassToPassNames) {
 
-// #define GET_PASS_REGISTRY "AMDGPUPassRegistry.def"
-// #include "llvm/Passes/TargetPassRegistry.inc"
+  // #define GET_PASS_REGISTRY "AMDGPUPassRegistry.def"
+  // #include "llvm/Passes/TargetPassRegistry.inc"
 
   PB.registerPipelineStartEPCallback(
       [](ModulePassManager &PM, OptimizationLevel Level) {
