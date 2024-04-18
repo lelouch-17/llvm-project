@@ -84,7 +84,7 @@ DUMMY_MACHINE_FUNCTION_PASS("amdgpu-regbank-comb-dummy", AMDGPURegBankCombinerPa
 DUMMY_MACHINE_FUNCTION_PASS("amdgpu-cfg-structurizer-dummy", AMDGPUMachineCFGStructurizerPass, ())
 DUMMY_MACHINE_FUNCTION_PASS("amdgpu-insert-single-use-vtsd-dummy", AMDGPUInsertSingleUseVDSTPass, ())
 DUMMY_MACHINE_FUNCTION_PASS("si-whole-quad-mode-dummy", SIWholeQuadModePass, ())
-DUMMY_MACHINE_FUNCTION_PASS("si-fix-sgpr-copies-dummy", SIFixSGPRCopiesPass, ())
+DUMMY_MACHINE_FUNCTION_PASS("si-fix-sgpr-copies-dummy", SIFixSGPRCopiesPass, ())  //
 DUMMY_MACHINE_FUNCTION_PASS("si-lower-i1-copies-dummy", SILowerI1CopiesPass, ())
 DUMMY_MACHINE_FUNCTION_PASS("si-lower-control-flow-dummy", SILowerControlFlowPass, ())
 DUMMY_MACHINE_FUNCTION_PASS("amdgpu-pre-ra-long-branch-reg-dummy", GCNPreRALongBranchRegPass, ())

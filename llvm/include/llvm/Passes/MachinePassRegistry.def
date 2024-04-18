@@ -138,7 +138,6 @@ MACHINE_FUNCTION_PASS("require-all-machine-function-properties",
 #ifndef DUMMY_FUNCTION_PASS
 #define DUMMY_FUNCTION_PASS(NAME, PASS_NAME)
 #endif
-DUMMY_FUNCTION_PASS("atomic-expand", AtomicExpandPass)
 #undef DUMMY_FUNCTION_PASS
 
 #ifndef DUMMY_MACHINE_MODULE_PASS

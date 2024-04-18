@@ -3,7 +3,7 @@
 
 using namespace llvm;
 
-template<typename DerivedT, typename TargetMachineT>
+template <typename DerivedT, typename TargetMachineT>
 class AMDGPUCodeGenPassBuilder
     : public CodeGenPassBuilder<DerivedT, TargetMachineT> {
 public:
@@ -12,7 +12,7 @@ public:
                                     PassInstrumentationCallbacks *PIC)
       : CodeGenPassBuilder<DerivedT, TargetMachineT>(TM, Opts, PIC) {}
 
-    bool isPassEnabled(const cl::opt<bool> &Opt,
+  bool isPassEnabled(const cl::opt<bool> &Opt,
                      CodeGenOptLevel Level = CodeGenOptLevel::Default) const {
     if (Opt.getNumOccurrences())
       return Opt;
@@ -20,13 +20,26 @@ public:
       return false;
     return Opt;
   }
+
+  //    FIXME: Port MachineScheduler Pass
+  //    ScheduleDAGInstrs *
+  //   createMachineScheduler(MachineSchedContext *C) const ;
+
   AMDGPUTargetMachine &getAMDGPUTargetMachine() const {
-    return CodeGenPassBuilder<DerivedT, TargetMachineT>::template getTM<AMDGPUTargetMachine>();
+    return CodeGenPassBuilder<DerivedT, TargetMachineT>::template getTM<
+        AMDGPUTargetMachine>();
   }
-  void addIRPasses(typename CodeGenPassBuilder<DerivedT, TargetMachineT>::AddIRPass &) const;
-  void addCodeGenPrepare(typename CodeGenPassBuilder<DerivedT, TargetMachineT>::AddIRPass &) const;
-  void addPreISel(typename CodeGenPassBuilder<DerivedT, TargetMachineT>::AddIRPass &) const;
-  Error addInstSelector(typename CodeGenPassBuilder<DerivedT, TargetMachineT>::AddMachinePass &) const; 
-  void addEarlyCSEOrGVNPass(typename CodeGenPassBuilder<DerivedT, TargetMachineT>::AddIRPass &) const;
-  void addStraightLineScalarOptimizationPasses(typename CodeGenPassBuilder<DerivedT, TargetMachineT>::AddIRPass &) const;
+  void addIRPasses(
+      typename CodeGenPassBuilder<DerivedT, TargetMachineT>::AddIRPass &) const;
+  void addCodeGenPrepare(
+      typename CodeGenPassBuilder<DerivedT, TargetMachineT>::AddIRPass &) const;
+  void addPreISel(
+      typename CodeGenPassBuilder<DerivedT, TargetMachineT>::AddIRPass &) const;
+  Error addInstSelector(
+      typename CodeGenPassBuilder<DerivedT, TargetMachineT>::AddMachinePass &)
+      const;
+  void addEarlyCSEOrGVNPass(
+      typename CodeGenPassBuilder<DerivedT, TargetMachineT>::AddIRPass &) const;
+  void addStraightLineScalarOptimizationPasses(
+      typename CodeGenPassBuilder<DerivedT, TargetMachineT>::AddIRPass &) const;
 };
