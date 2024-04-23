@@ -71,8 +71,7 @@
 using namespace llvm;
 using namespace llvm::PatternMatch;
 
-// Removed Namespace
-namespace PassOpn {
+namespace {
 class SGPRRegisterRegAlloc : public RegisterRegAllocBase<SGPRRegisterRegAlloc> {
 public:
   SGPRRegisterRegAlloc(const char *N, const char *D, FunctionPassCtor C)
@@ -101,25 +100,24 @@ static FunctionPass *useDefaultRegisterAllocator() { return nullptr; }
 
 /// A dummy default pass factory indicates whether the register allocator is
 /// overridden on the command line.
- llvm::once_flag InitializeDefaultSGPRRegisterAllocatorFlag;
- llvm::once_flag InitializeDefaultVGPRRegisterAllocatorFlag;
+static llvm::once_flag InitializeDefaultSGPRRegisterAllocatorFlag;
+static llvm::once_flag InitializeDefaultVGPRRegisterAllocatorFlag;
 
 static SGPRRegisterRegAlloc
 defaultSGPRRegAlloc("default",
                     "pick SGPR register allocator based on -O option",
                     useDefaultRegisterAllocator);
 
-cl::opt<SGPRRegisterRegAlloc::FunctionPassCtor, false,
-        RegisterPassParser<SGPRRegisterRegAlloc>>
-    SGPRRegAlloc("sgpr-regalloc", cl::Hidden,
-                 cl::init(&useDefaultRegisterAllocator),
-                 cl::desc("Register allocator to use for SGPRs"));
+static cl::opt<SGPRRegisterRegAlloc::FunctionPassCtor, false,
+               RegisterPassParser<SGPRRegisterRegAlloc>>
+SGPRRegAlloc("sgpr-regalloc", cl::Hidden, cl::init(&useDefaultRegisterAllocator),
+             cl::desc("Register allocator to use for SGPRs"));
 
-cl::opt<VGPRRegisterRegAlloc::FunctionPassCtor, false,
-        RegisterPassParser<VGPRRegisterRegAlloc>>
-    VGPRRegAlloc("vgpr-regalloc", cl::Hidden,
-                 cl::init(&useDefaultRegisterAllocator),
-                 cl::desc("Register allocator to use for VGPRs"));
+static cl::opt<VGPRRegisterRegAlloc::FunctionPassCtor, false,
+               RegisterPassParser<VGPRRegisterRegAlloc>>
+VGPRRegAlloc("vgpr-regalloc", cl::Hidden, cl::init(&useDefaultRegisterAllocator),
+             cl::desc("Register allocator to use for VGPRs"));
+
 
 static void initializeDefaultSGPRRegisterAllocatorOnce() {
   RegisterRegAlloc::FunctionPassCtor Ctor = SGPRRegisterRegAlloc::getDefault();
@@ -177,11 +175,10 @@ static VGPRRegisterRegAlloc basicRegAllocVGPR(
 static VGPRRegisterRegAlloc greedyRegAllocVGPR(
   "greedy", "greedy register allocator", createGreedyVGPRRegisterAllocator);
 
-static VGPRRegisterRegAlloc fastRegAllocVGPR("fast", "fast register allocator",
-                                             createFastVGPRRegisterAllocator);
-} 
+static VGPRRegisterRegAlloc fastRegAllocVGPR(
+  "fast", "fast register allocator", createFastVGPRRegisterAllocator);
+}
 
-using namespace PassOpn; 
 cl::opt<bool> EnableEarlyIfConversion("amdgpu-early-ifcvt", cl::Hidden,
                                       cl::desc("Run early if-conversion"),
                                       cl::init(false));

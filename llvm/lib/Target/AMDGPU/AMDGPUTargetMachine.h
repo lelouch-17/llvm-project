@@ -65,6 +65,11 @@ public:
   /// Get the integer value of a null pointer in the given address space.
   static int64_t getNullPointerValue(unsigned AddrSpace);
 
+  // Error buildCodeGenPipeline(ModulePassManager &, raw_pwrite_stream &,
+  //                            raw_pwrite_stream *, CodeGenFileType,
+  //                            const CGPassBuilderOption &,
+  //                            PassInstrumentationCallbacks *) override;
+
   bool isNoopAddrSpaceCast(unsigned SrcAS, unsigned DestAS) const override;
 
   unsigned getAssumedAddrSpace(const Value *V) const override;
