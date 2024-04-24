@@ -30,12 +30,12 @@ FUNCTION_PASS("slsr", StraightLineStrengthReducePass, ())
 FUNCTION_PASS("nary-reassociate", NaryReassociatePass, ())
 FUNCTION_PASS("gvn", GVNPass, ())
 FUNCTION_PASS("early-cse", EarlyCSEPass, ())
+FUNCTION_PASS("amdgpu-aa", AMDGPUAA, ()) // AAWRapper 
 #undef FUNCTION_PASS
 
 #ifndef DUMMY_FUNCTION_PASS
 #define DUMMY_FUNCTION_PASS(NAME, PASS_NAME, CONSTRUCTOR)
 #endif
-DUMMY_FUNCTION_PASS("amdgpu-aa", AMDGPUAAWrapperPass, ())
 DUMMY_FUNCTION_PASS("amdgpu-annotate-kernel-features-dummy", AMDGPUAnnotateKernelFeaturesPass, ())
 DUMMY_FUNCTION_PASS("amdgpu-annotate-uniform-values-dummy", AMDGPUAnnotateUniformValuesPass, ())
 DUMMY_FUNCTION_PASS("si-annotate-control-flow-dummy", SIAnnotateControlFlowPass, ())
@@ -109,6 +109,8 @@ DUMMY_MACHINE_FUNCTION_PASS("si-optimize-exec-masking-dummy", SIOptimizeExecMask
 DUMMY_MACHINE_FUNCTION_PASS("si-optimize-exec-masking-prera-dummy", SIOptimizeExecMaskingPreRAPass, ())
 DUMMY_MACHINE_FUNCTION_PASS("amdgpu-nsa-reassign-dummy", GCNNSAReassignPass, ())
 DUMMY_MACHINE_FUNCTION_PASS("gcn-create-vopd-dummy", GCNCreateVOPDPass, ())
+DUMMY_MACHINE_FUNCTION_PASS("amdgpu-pre-ra-optimizations-dummy", GCNPreRAOptimizationsPass, ())
+DUMMY_MACHINE_FUNCTION_PASS("rewrite-partial-reg-uses-dummy", GCNRewritePartialRegUsesPass, ())
 DUMMY_MACHINE_FUNCTION_PASS("si-insert-hard-clauses-dummy", SIInsertHardClausesPass, ())
 DUMMY_MACHINE_FUNCTION_PASS("si-pre-emit-peephole-dummy", SIPreEmitPeepholePass, ())
 DUMMY_MACHINE_FUNCTION_PASS("amdgpu-insert-delay-alu-dummy", AMDGPUInsertDelayAluPass, ())
