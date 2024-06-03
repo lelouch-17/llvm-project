@@ -30,7 +30,7 @@ FUNCTION_PASS("slsr", StraightLineStrengthReducePass, ())
 FUNCTION_PASS("nary-reassociate", NaryReassociatePass, ())
 FUNCTION_PASS("gvn", GVNPass, ())
 FUNCTION_PASS("early-cse", EarlyCSEPass, ())
-FUNCTION_PASS("amdgpu-aa", AMDGPUAA, ()) // AAWRapper 
+FUNCTION_PASS("amdgpu-aa", AMDGPUAA, ()) 
 #undef FUNCTION_PASS
 
 #ifndef DUMMY_FUNCTION_PASS
@@ -40,8 +40,14 @@ DUMMY_FUNCTION_PASS("amdgpu-annotate-kernel-features-dummy", AMDGPUAnnotateKerne
 DUMMY_FUNCTION_PASS("amdgpu-annotate-uniform-values-dummy", AMDGPUAnnotateUniformValuesPass, ())
 DUMMY_FUNCTION_PASS("si-annotate-control-flow-dummy", SIAnnotateControlFlowPass, ())
 DUMMY_FUNCTION_PASS("amdgpu-late-codgen-prepare-dummy", AMDGPULateCodeGenPreparePass, ())
-
+DUMMY_FUNCTION_PASS("si-form-memory-clauses", AMDGPUPerfHintAnalysisPass, ()) // CGSCC Pass
 #undef DUMMY_FUNCTION_PASS
+
+#ifndef DUMMY_LOOP_PASS
+#define DUMMY_LOOP_PASS(NAME, CREATE_PASS, CONSTRUCTOR)
+#endif
+DUMMY_LOOP_PASS("licm", LICMPass, ())
+#undef DUMMY_LOOP_PASS
 
 #ifndef MODULE_PASS
 #define MODULE_PASS(NAME, PASS_NAME, CONSTRUCTOR)
@@ -50,6 +56,7 @@ MODULE_PASS("amdgpu-printf-runtime-binding", AMDGPUPrintfRuntimeBindingPass, ())
 MODULE_PASS("amdgpu-always-inline", AMDGPUAlwaysInlinePass, ())
 MODULE_PASS("amdgpu-attributor", AMDGPUAttributorPass, (getTM<AMDGPUTargetMachine>()))
 MODULE_PASS("amdgpu-lower-module-lds", AMDGPULowerModuleLDSPass, (getTM<AMDGPUTargetMachine>()))
+
 #undef MODULE_PASS
 
 #ifndef DUMMY_MODULE_PASS
@@ -78,9 +85,9 @@ MACHINE_FUNCTION_PASS("free-machine-function", FreeMachineFunctionPass, ())
 #define DUMMY_MACHINE_FUNCTION_PASS(NAME, PASS_NAME, CONSTRUCTOR)
 #endif
 DUMMY_MACHINE_FUNCTION_PASS("amdgpu-isel-dag-dummy", AMDGPUDAGToDAGISelPass, (getTM<AMDGPUTargetMachine>(), getOptLevel()))
-DUMMY_MACHINE_FUNCTION_PASS("amdgpu-postlegalizer-combiner-dummy", AMDGPUPostLegalizeCombinerPass, ())
+DUMMY_MACHINE_FUNCTION_PASS("amdgpu-postlegalizer-combiner-dummy", AMDGPUPostLegalizeCombinerPass, (IsOptNone))
 DUMMY_MACHINE_FUNCTION_PASS("amdgpu-prelegalizer-combiner-dummy", AMDGPUPreLegalizerCombinerPass, (getOptLevel()))
-DUMMY_MACHINE_FUNCTION_PASS("amdgpu-regbank-comb-dummy", AMDGPURegBankCombinerPass, ())
+DUMMY_MACHINE_FUNCTION_PASS("amdgpu-regbank-comb-dummy", AMDGPURegBankCombinerPass, (IsOptNone))
 DUMMY_MACHINE_FUNCTION_PASS("amdgpu-cfg-structurizer-dummy", AMDGPUMachineCFGStructurizerPass, ())
 DUMMY_MACHINE_FUNCTION_PASS("amdgpu-insert-single-use-vtsd-dummy", AMDGPUInsertSingleUseVDSTPass, ())
 DUMMY_MACHINE_FUNCTION_PASS("si-whole-quad-mode-dummy", SIWholeQuadModePass, ())
@@ -117,6 +124,7 @@ DUMMY_MACHINE_FUNCTION_PASS("amdgpu-insert-delay-alu-dummy", AMDGPUInsertDelayAl
 DUMMY_MACHINE_FUNCTION_PASS("gcn-dpp-combine-dummy", GCNDPPCombinePass, ())
 DUMMY_MACHINE_FUNCTION_PASS("si-peephole-sdwa-dummy", SIPeepholeSDWAPass, ())
 DUMMY_MACHINE_FUNCTION_PASS("si-form-memory-clauses", SIFormMemoryClausesPass, ())
+
 
 #undef DUMMY_MACHINE_FUNCTION_PASS//===- AMDGPUPassRegistry.def - Registry of AMDGPU passes -------*- C++ -*-===//
 //

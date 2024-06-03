@@ -68,6 +68,7 @@ using namespace llvm;
 using namespace llvm::PatternMatch;
 
 // Removed Namespace
+namespace PassOpn {
 class SGPRRegisterRegAlloc : public RegisterRegAllocBase<SGPRRegisterRegAlloc> {
 public:
   SGPRRegisterRegAlloc(const char *N, const char *D, FunctionPassCtor C)
@@ -96,8 +97,8 @@ static FunctionPass *useDefaultRegisterAllocator() { return nullptr; }
 
 /// A dummy default pass factory indicates whether the register allocator is
 /// overridden on the command line.
-static llvm::once_flag InitializeDefaultSGPRRegisterAllocatorFlag;
-static llvm::once_flag InitializeDefaultVGPRRegisterAllocatorFlag;
+ llvm::once_flag InitializeDefaultSGPRRegisterAllocatorFlag;
+ llvm::once_flag InitializeDefaultVGPRRegisterAllocatorFlag;
 
 static SGPRRegisterRegAlloc
 defaultSGPRRegAlloc("default",
@@ -174,7 +175,9 @@ static VGPRRegisterRegAlloc greedyRegAllocVGPR(
 
 static VGPRRegisterRegAlloc fastRegAllocVGPR("fast", "fast register allocator",
                                              createFastVGPRRegisterAllocator);
+} 
 
+using namespace PassOpn; 
 cl::opt<bool> EnableEarlyIfConversion("amdgpu-early-ifcvt", cl::Hidden,
                                       cl::desc("Run early if-conversion"),
                                       cl::init(false));
