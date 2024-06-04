@@ -649,13 +649,13 @@ parseAMDGPUAtomicOptimizerStrategy(StringRef Params) {
   return make_error<StringError>("invalid parameter", inconvertibleErrorCode());
 }
 
-Error AMDGPUTargetMachine::buildCodeGenPipeline(
-    ModulePassManager &MPM, raw_pwrite_stream &Out, raw_pwrite_stream *DwoOut,
-    CodeGenFileType FileType, const CGPassBuilderOption &Opts,
-    PassInstrumentationCallbacks *PIC) {
-  AMDGPUCodeGenPassBuilder CGPB(*this, Opts, PIC);
-  return CGPB.buildPipeline(MPM, Out, DwoOut, FileType);
-}
+// Error AMDGPUTargetMachine::buildCodeGenPipeline(
+//     ModulePassManager &MPM, raw_pwrite_stream &Out, raw_pwrite_stream *DwoOut,
+//     CodeGenFileType FileType, const CGPassBuilderOption &Opts,
+//     PassInstrumentationCallbacks *PIC) {
+//   AMDGPUCodeGenPassBuilder CGPB(*this, Opts, PIC);
+//   return CGPB.buildPipeline(MPM, Out, DwoOut, FileType);
+// }
 
 void AMDGPUTargetMachine::registerPassBuilderCallbacks(
     PassBuilder &PB, bool PopulateClassToPassNames) {

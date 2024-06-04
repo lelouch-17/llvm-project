@@ -777,7 +777,7 @@ void AMDGPUCodeGenPassBuilder<DerivedT, TargetMachineT>::addIRPasses(
     // have expanded.
     if (CodeGenPassBuilder<DerivedT, TargetMachineT>::getOptLevel() >
         CodeGenOptLevel::Less) {
-       addPass(createFunctionToLoopPassAdaptor(LICMPass()));
+      // addPass(createFunctionToLoopPassAdaptor(LICMPass()));
     }
   }
 
