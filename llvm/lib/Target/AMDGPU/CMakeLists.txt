@@ -98,6 +98,7 @@ add_llvm_target(AMDGPUCodeGen
   AMDGPURewriteOutArguments.cpp
   AMDGPURewriteUndefForPHI.cpp
   AMDGPUSetWavePriority.cpp
+  AMDGPUSplitModule.cpp
   AMDGPUSubtarget.cpp
   AMDGPUTargetMachine.cpp
   AMDGPUTargetObjectFile.cpp
@@ -120,6 +121,7 @@ add_llvm_target(AMDGPUCodeGen
   GCNVOPDUtils.cpp
   R600AsmPrinter.cpp
   R600ClauseMergePass.cpp
+  R600CodeGenPassBuilder.cpp
   R600ControlFlowFinalizer.cpp
   R600EmitClauseMarkers.cpp
   R600ExpandSpecialInstrs.cpp

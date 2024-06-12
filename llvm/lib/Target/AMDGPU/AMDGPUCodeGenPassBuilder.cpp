@@ -1,14 +1,14 @@
-//===-- AMDGPUCodeGenPassBuilder.cpp ------------------------------*- C++ -*-=//
+//===- lib/Target/AMDGPU/AMDGPUCodeGenPassBuilder.cpp ---------------------===//
 //
 // Part of the LLVM Project, under the Apache License v2.0 with LLVM Exceptions.
 // See https://llvm.org/LICENSE.txt for license information.
 // SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
 //
 //===----------------------------------------------------------------------===//
+//<<<<<<< HEAD
 /// \file
 /// This file contains AMDGPU CodeGen pipeline builder.
 /// TODO: Port CodeGen passes to new pass manager.
-//===----------------------------------------------------------------------===//
 #pragma once
 
 #include "AMDGPUTargetMachine.h"
@@ -80,7 +80,7 @@
 #include "llvm/Transforms/Utils/SimplifyLibCalls.h"
 #include "llvm/Transforms/Utils/UnifyLoopExits.h"
 #include "llvm/Transforms/Vectorize/LoadStoreVectorizer.h"
-#include "llvm/CodeGen/AtomicExpand.h"
+//#include "llvm/CodeGen/AtomicExpand.h"
 #include <optional>
 
 using namespace llvm;
@@ -426,7 +426,7 @@ Error GCNCodeGenPassBuilder::addIRTranslator(AddMachinePass &addPass) const {
 void GCNCodeGenPassBuilder::addPreLegalizeMachineIR(AddMachinePass &addPass) const {
   bool IsOptNone = getOptLevel() == CodeGenOptLevel::None;
   addPass(AMDGPUPreLegalizerCombinerPass(IsOptNone));
-  addPass(LocalizerPass()); 
+ // addPass(LocalizerPass()); 
   return ;
 }
 Error GCNCodeGenPassBuilder::addLegalizeMachineIR(
