@@ -199,10 +199,10 @@ namespace {
 class GCNCodeGenPassBuilder final
     : public AMDGPUCodeGenPassBuilder<GCNCodeGenPassBuilder, GCNTargetMachine> {
 public:
-  GCNCodeGenPassBuilder(GCNTargetMachine &TM, CGPassBuilderOption Opts,
+  GCNCodeGenPassBuilder(GCNTargetMachine &TM, CGPassBuilderOption Opt,
                         PassInstrumentationCallbacks *PIC)
       : AMDGPUCodeGenPassBuilder<GCNCodeGenPassBuilder, GCNTargetMachine>(
-            TM, Opts, PIC) {
+            TM, Opt, PIC) {
     //  // It is necessary to know the register usage of the entire call graph.  We
     // // allow calls without EnableAMDGPUFunctionCalls if they are marked
     // // noinline, so this is always required.
@@ -745,7 +745,7 @@ void AMDGPUCodeGenPassBuilder<DerivedT, TargetMachineT>::addIRPasses(
   }
 
   TargetMachineT* PtrTm = &(CodeGenPassBuilder<DerivedT, TargetMachineT>::TM);  
-  addPass(AtomicExpandPass(PtrTm));
+ // addPass(AtomicExpandPass(PtrTm));
 
   if (CodeGenPassBuilder<DerivedT, TargetMachineT>::getOptLevel() >
       CodeGenOptLevel::None) {

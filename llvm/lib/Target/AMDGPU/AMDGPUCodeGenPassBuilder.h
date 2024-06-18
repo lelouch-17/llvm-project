@@ -8,9 +8,9 @@ class AMDGPUCodeGenPassBuilder
     : public CodeGenPassBuilder<DerivedT, TargetMachineT> {
 public:
   explicit AMDGPUCodeGenPassBuilder(TargetMachineT &TM,
-                                    CGPassBuilderOption Opts,
+                                    CGPassBuilderOption Opt,
                                     PassInstrumentationCallbacks *PIC)
-      : CodeGenPassBuilder<DerivedT, TargetMachineT>(TM, Opts, PIC) {}
+      : CodeGenPassBuilder<DerivedT, TargetMachineT>(TM, Opt, PIC) {}
 
   bool isPassEnabled(const cl::opt<bool> &Opt,
                      CodeGenOptLevel Level = CodeGenOptLevel::Default) const {
