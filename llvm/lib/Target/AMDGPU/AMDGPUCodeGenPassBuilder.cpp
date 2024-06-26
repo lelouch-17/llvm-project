@@ -9,10 +9,8 @@
 /// \file
 /// This file contains AMDGPU CodeGen pipeline builder.
 /// TODO: Port CodeGen passes to new pass manager.
-#pragma once
-
 #include "AMDGPUTargetMachine.h"
- #include "AMDGPUCodeGenPassBuilder.h"
+#include "AMDGPUCodeGenPassBuilder.h"
 #include "llvm/Passes/CodeGenPassBuilder.h"
 #include "llvm/MC/MCStreamer.h"
 #include "llvm/Transforms/Scalar/GVN.h"
@@ -30,8 +28,6 @@
 #include "llvm/Transforms/Utils/FixIrreducible.h"
 #include "llvm/Transforms/Utils.h"
 #include "llvm/Transforms/Utils/UnifyLoopExits.h"
-//#include "llvm/CodeGen/AtomicExpand.h"
-#include <optional>
 
 using namespace llvm;
 
