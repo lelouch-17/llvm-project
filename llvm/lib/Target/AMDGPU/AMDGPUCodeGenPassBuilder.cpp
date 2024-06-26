@@ -238,7 +238,7 @@ Error GCNCodeGenPassBuilder::addGlobalInstructionSelect(
   addPass(InstructionSelectPass(getOptLevel())); // Param
   return Error::success();
 }
-Error GCNCodeGenPassBuilder::addFastRegAlloc(AddMachinePass &addPass) const {
+Error GCNCodeGenPassBuilder::addFastRegAlloc(AddMachinePass &addPass) {
   // FIXME: We have to disable the verifier here because of PHIElimination +
   // TwoAddressInstructions disabling it.
 
@@ -246,33 +246,33 @@ Error GCNCodeGenPassBuilder::addFastRegAlloc(AddMachinePass &addPass) const {
   // TwoAddressInstructions, otherwise the processing of the tied operand of
   // SI_ELSE will introduce a copy of the tied operand source after the else.
 
-  const_cast<GCNCodeGenPassBuilder*>(this)->insertPass<PHIEliminationPass,SILowerControlFlowPass>(SILowerControlFlowPass());
+  insertPass<PHIEliminationPass,SILowerControlFlowPass>(SILowerControlFlowPass());
 
 
-  const_cast<GCNCodeGenPassBuilder*>(this)->insertPass<TwoAddressInstructionPass,SIWholeQuadModePass>(SIWholeQuadModePass());
+ insertPass<TwoAddressInstructionPass,SIWholeQuadModePass>(SIWholeQuadModePass());
 
   return CodeGenPassBuilder<GCNCodeGenPassBuilder,
                             GCNTargetMachine>::addFastRegAlloc(addPass);
 }
-void GCNCodeGenPassBuilder::addOptimizedRegAlloc(AddMachinePass &addPass) const{
+void GCNCodeGenPassBuilder::addOptimizedRegAlloc(AddMachinePass &addPass){
   // Allow the scheduler to run before SIWholeQuadMode inserts exec manipulation
   // instructions that cause scheduling barriers.
-    const_cast<GCNCodeGenPassBuilder*>(this)->insertPass<MachineSchedulerPass,SIWholeQuadModePass>(SIWholeQuadModePass());
+  insertPass<MachineSchedulerPass,SIWholeQuadModePass>(SIWholeQuadModePass());
   
 
   if (OptExecMaskPreRA)
-    const_cast<GCNCodeGenPassBuilder*>(this)->insertPass<MachineSchedulerPass,SIOptimizeExecMaskingPreRAPass>(SIOptimizeExecMaskingPreRAPass());
+    insertPass<MachineSchedulerPass,SIOptimizeExecMaskingPreRAPass>(SIOptimizeExecMaskingPreRAPass());
 
    if (EnableRewritePartialRegUses)
-     const_cast<GCNCodeGenPassBuilder*>(this)->insertPass<RenameIndependentSubregsPass,GCNRewritePartialRegUsesPass>(GCNRewritePartialRegUsesPass());
+    insertPass<RenameIndependentSubregsPass,GCNRewritePartialRegUsesPass>(GCNRewritePartialRegUsesPass());
 
    if (isPassEnabled(EnablePreRAOptimizations))
-     const_cast<GCNCodeGenPassBuilder*>(this)->insertPass<RenameIndependentSubregsPass,GCNPreRAOptimizationsPass>(GCNPreRAOptimizationsPass());
+    insertPass<RenameIndependentSubregsPass,GCNPreRAOptimizationsPass>(GCNPreRAOptimizationsPass());
 
   // // This is not an essential optimization and it has a noticeable impact on
   // // compilation time, so we only enable it from O2.
    if (getOptLevel() > CodeGenOptLevel::Less)
-     const_cast<GCNCodeGenPassBuilder*>(this)->insertPass<MachineSchedulerPass,SIFormMemoryClausesPass>(SIFormMemoryClausesPass());
+   insertPass<MachineSchedulerPass,SIFormMemoryClausesPass>(SIFormMemoryClausesPass());
 
   // // FIXME: when an instruction has a Killed operand, and the instruction is
   // // inside a bundle, seems only the BUNDLE instruction appears as the Kills of
@@ -284,10 +284,10 @@ void GCNCodeGenPassBuilder::addOptimizedRegAlloc(AddMachinePass &addPass) const{
   // // This must be run immediately after phi elimination and before
   // // TwoAddressInstructions, otherwise the processing of the tied operand of
   // // SI_ELSE will introduce a copy of the tied operand source after the else.
-   const_cast<GCNCodeGenPassBuilder*>(this)->insertPass<PHIEliminationPass,SILowerControlFlowPass>(SILowerControlFlowPass());
+  insertPass<PHIEliminationPass,SILowerControlFlowPass>(SILowerControlFlowPass());
 
   if (EnableDCEInRA)
-    const_cast<GCNCodeGenPassBuilder*>(this)->insertPass<DetectDeadLanesPass,DeadMachineInstructionElimPass>(DeadMachineInstructionElimPass());
+   insertPass<DetectDeadLanesPass,DeadMachineInstructionElimPass>(DeadMachineInstructionElimPass());
 
   CodeGenPassBuilder<GCNCodeGenPassBuilder,
                      GCNTargetMachine>::addOptimizedRegAlloc(addPass);

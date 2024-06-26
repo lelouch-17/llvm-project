@@ -22,8 +22,13 @@ DUMMY_FUNCTION_PASS("amdgpu-annotate-kernel-features-dummy", AMDGPUAnnotateKerne
 DUMMY_FUNCTION_PASS("amdgpu-annotate-uniform-values-dummy", AMDGPUAnnotateUniformValuesPass)
 DUMMY_FUNCTION_PASS("si-annotate-control-flow-dummy", SIAnnotateControlFlowPass)
 DUMMY_FUNCTION_PASS("amdgpu-late-codgen-prepare-dummy", AMDGPULateCodeGenPreparePass)
-DUMMY_FUNCTION_PASS("si-form-memory-clauses", AMDGPUPerfHintAnalysisPass) // CGSCC Pass
 #undef DUMMY_FUNCTION_PASS
+
+// #ifndef DUMMY_CGSCC_PASS
+// #define DUMMY_CGSCC_PASS(NAME, CREATE_PASS)
+// #endif
+// DUMMY_CGSCC_PASS("si-form-memory-clauses", AMDGPUPerfHintAnalysisPass)
+// #undef DUMMY_CGSCC_PASS
 
 #ifndef DUMMY_LOOP_PASS
 #define DUMMY_LOOP_PASS(NAME, CREATE_PASS)

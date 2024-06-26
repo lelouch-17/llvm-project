@@ -52,6 +52,13 @@ namespace {
       return PreservedAnalyses::all();                                         \
     }                                                                          \
   };
+  #define DUMMY_CGSCC_PASS(NAME, PASS_NAME)                    \
+  struct PASS_NAME : public PassInfoMixin<PASS_NAME> {                         \
+    template <typename... Ts> PASS_NAME(Ts &&...) {}                           \
+    PreservedAnalyses run(LazyCallGraph::SCC &,CGSCCAnalysisManager &,LazyCallGraph &, CGSCCUpdateResult &) {             \
+      return PreservedAnalyses::all();                                         \
+    }                                                                          \
+  };
   #define DUMMY_FUNCTION_PASS(NAME, PASS_NAME)                    \
   struct PASS_NAME : public PassInfoMixin<PASS_NAME> {                         \
     template <typename... Ts> PASS_NAME(Ts &&...) {}                           \

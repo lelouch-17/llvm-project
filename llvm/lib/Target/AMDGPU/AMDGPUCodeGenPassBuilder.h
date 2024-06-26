@@ -35,8 +35,8 @@ public:
   Error addRegBankSelect(AddMachinePass &) const;
   Error addPreGlobalInstructionSelect(AddMachinePass &) const;
   Error addGlobalInstructionSelect(AddMachinePass &) const;
-  Error addFastRegAlloc(AddMachinePass &) const;
-  void addOptimizedRegAlloc(AddMachinePass &) const;
+  Error addFastRegAlloc(AddMachinePass &);
+  void addOptimizedRegAlloc(AddMachinePass &);
   void addAsmPrinter(AddMachinePass &, CreateMCStreamer) const;
 
   FunctionPass *createSGPRAllocPass(bool Optimized);
