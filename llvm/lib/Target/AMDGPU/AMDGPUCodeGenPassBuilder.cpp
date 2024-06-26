@@ -12,79 +12,28 @@
 #pragma once
 
 #include "AMDGPUTargetMachine.h"
-
  #include "AMDGPUCodeGenPassBuilder.h"
-
 #include "llvm/Passes/CodeGenPassBuilder.h"
 #include "llvm/MC/MCStreamer.h"
-
-#include "llvm/MC/MCStreamer.h"
-#include "llvm/Transforms/Scalar/FlattenCFG.h"
 #include "llvm/Transforms/Scalar/GVN.h"
-#include "llvm/Transforms/Scalar/NaryReassociate.h"
-#include "llvm/Transforms/Scalar/SeparateConstOffsetFromGEP.h"
 #include "llvm/Transforms/Scalar/Sink.h"
-#include "llvm/Transforms/Scalar/StraightLineStrengthReduce.h"
-
 #include "AMDGPU.h"
-#include "AMDGPUAliasAnalysis.h"
-#include "AMDGPUCtorDtorLowering.h"
-#include "AMDGPUExportClustering.h"
-#include "AMDGPUIGroupLP.h"
-#include "AMDGPUMacroFusion.h"
-#include "AMDGPURegBankSelect.h"
-#include "AMDGPUTargetObjectFile.h"
-#include "AMDGPUTargetTransformInfo.h"
 #include "AMDGPUUnifyDivergentExitNodes.h"
-#include "GCNIterativeScheduler.h"
-#include "GCNSchedStrategy.h"
-#include "GCNVOPDUtils.h"
 #include "R600.h"
-#include "R600MachineFunctionInfo.h"
-#include "R600TargetMachine.h"
-#include "SIMachineFunctionInfo.h"
-#include "SIMachineScheduler.h"
-#include "TargetInfo/AMDGPUTargetInfo.h"
-#include "Utils/AMDGPUBaseInfo.h"
-#include "llvm/Analysis/CGSCCPassManager.h"
-#include "llvm/CodeGen/GlobalISel/CSEInfo.h"
-#include "llvm/CodeGen/GlobalISel/IRTranslator.h"
-#include "llvm/CodeGen/GlobalISel/InstructionSelect.h"
-#include "llvm/CodeGen/GlobalISel/Legalizer.h"
-#include "llvm/CodeGen/GlobalISel/Localizer.h"
-#include "llvm/CodeGen/GlobalISel/RegBankSelect.h"
-#include "llvm/CodeGen/MIRParser/MIParser.h"
 #include "llvm/CodeGen/Passes.h"
-#include "llvm/Transforms/Scalar/EarlyCSE.h"
 #include "llvm/CodeGen/RegAllocRegistry.h"
 #include "llvm/CodeGen/TargetPassConfig.h"
-#include "llvm/IR/IntrinsicsAMDGPU.h"
 #include "llvm/IR/PassManager.h"
-#include "llvm/IR/PatternMatch.h"
-#include "llvm/InitializePasses.h"
-#include "llvm/MC/TargetRegistry.h"
-#include "llvm/Passes/PassBuilder.h"
-#include "llvm/Transforms/HipStdPar/HipStdPar.h"
-#include "llvm/Transforms/IPO.h"
-#include "llvm/Transforms/IPO/AlwaysInliner.h"
-#include "llvm/Transforms/IPO/GlobalDCE.h"
-#include "llvm/Transforms/IPO/Internalize.h"
 #include "llvm/Transforms/Scalar.h"
 #include "llvm/Transforms/Scalar/GVN.h"
-#include "llvm/Transforms/Scalar/InferAddressSpaces.h"
-#include "llvm/Transforms/Scalar/LoopPassManager.h"
 #include "llvm/Transforms/Scalar/StructurizeCFG.h"
 #include "llvm/Transforms/Utils/FixIrreducible.h"
-#include "llvm/Transforms/Utils/LowerSwitch.h"
 #include "llvm/Transforms/Utils.h"
-#include "llvm/Transforms/Utils/SimplifyLibCalls.h"
 #include "llvm/Transforms/Utils/UnifyLoopExits.h"
-#include "llvm/Transforms/Vectorize/LoadStoreVectorizer.h"
 //#include "llvm/CodeGen/AtomicExpand.h"
 #include <optional>
 
 using namespace llvm;
-using namespace llvm::PatternMatch;
 
 extern cl::opt<bool> EnableEarlyIfConversion;
 
@@ -155,11 +104,6 @@ extern cl::opt<bool> EnableMaxIlpSchedStrategy;
 
 extern cl::opt<bool> EnableRewritePartialRegUses;
 
-static const char RegAllocOptNotSupportedMessage[] =
-    "-regalloc not supported with amdgcn. Use -sgpr-regalloc and "
-    "-vgpr-regalloc";
-
-
 void GCNCodeGenPassBuilder::addAsmPrinter(AddMachinePass &addPass,
                                           CreateMCStreamer MCStreamer) const {
   // TODO: Add AsmPrinter.
@@ -167,12 +111,12 @@ void GCNCodeGenPassBuilder::addAsmPrinter(AddMachinePass &addPass,
 }
 
 FunctionPass *
-GCNCodeGenPassBuilder::createSGPRAllocPass(bool Optimized) { // Newpm
+GCNCodeGenPassBuilder::createSGPRAllocPass(bool Optimized) { 
   return nullptr;
 }
 
 FunctionPass *
-GCNCodeGenPassBuilder::createVGPRAllocPass(bool Optimized) { // Newpm
+GCNCodeGenPassBuilder::createVGPRAllocPass(bool Optimized) { 
   return nullptr;
 }
 
@@ -211,7 +155,7 @@ Error GCNCodeGenPassBuilder::addRegAssignmentOptimized(
   // many things rely on the use lists of the physical registers, such as the
   // verifier. This is only necessary with allocators which use LiveIntervals,
   // since FastRegAlloc does the replacements itself.
-  // addPass(createVirtRegRewriter(false)); FIXME: Port to NPM
+   addPass(VirtRegRewriterPass()); 
 
   // Equivalent of PEI for SGPRs.
   addPass(SILowerSGPRSpillsPass());
@@ -220,7 +164,7 @@ Error GCNCodeGenPassBuilder::addRegAssignmentOptimized(
   // addPass(createVGPRAllocPass(true));  FIXME_NEW
 
   addPreRewrite(addPass);
-  // addPass(&VirtRegRewriterID); FIXME_NEW
+   addPass(VirtRegRewriterPass());
 
   return Error::success();
 }
@@ -262,7 +206,7 @@ Error GCNCodeGenPassBuilder::addIRTranslator(AddMachinePass &addPass) const {
 void GCNCodeGenPassBuilder::addPreLegalizeMachineIR(AddMachinePass &addPass) const {
   bool IsOptNone = getOptLevel() == CodeGenOptLevel::None;
   addPass(AMDGPUPreLegalizerCombinerPass(IsOptNone));
- // addPass(LocalizerPass()); 
+  addPass(LocalizerPass()); 
   return ;
 }
 Error GCNCodeGenPassBuilder::addLegalizeMachineIR(
@@ -272,12 +216,12 @@ Error GCNCodeGenPassBuilder::addLegalizeMachineIR(
 }
 Error GCNCodeGenPassBuilder::addInstSelector(
     AddMachinePass &addPass) const {
-  Error E =
+  Error Error =
       AMDGPUCodeGenPassBuilder<GCNCodeGenPassBuilder,
                                GCNTargetMachine>::addInstSelector(addPass);
   addPass(SIFixSGPRCopiesPass());
   addPass(SILowerI1CopiesPass());
-  return E;
+  return Error;
 }
 Error GCNCodeGenPassBuilder::addPreRegBankSelect(AddMachinePass &addPass) const {
   bool IsOptNone = getOptLevel() == CodeGenOptLevel::None;
@@ -426,7 +370,7 @@ void GCNCodeGenPassBuilder::addPreISel(AddIRPass &addPass) const {
       addPass(FixIrreduciblePass());
       addPass(UnifyLoopExitsPass());
     }
-    addPass(StructurizeCFGPass()); // No SkipUniformRegions opn 
+    addPass(StructurizeCFGPass());  
   }
   addPass(AMDGPUAnnotateUniformValuesPass());
   if (!LateCFGStructurize) {
@@ -451,48 +395,3 @@ Error GCNTargetMachine::buildCodeGenPipeline(
   auto CGPB = GCNCodeGenPassBuilder(*this, Opt, PIC);
   return CGPB.buildPipeline(MPM, Out, DwoOut, FileType);
 }
-
-// #include "R600TargetMachine.h"
-// namespace llvm {
-
-// class R600CodeGenPassBuilder final
-//     : public AMDGPUCodeGenPassBuilder<R600CodeGenPassBuilder, R600TargetMachine> {
-// public:
-//   R600CodeGenPassBuilder(R600TargetMachine &TM, const CGPassBuilderOption &Opts,
-//                          PassInstrumentationCallbacks *PIC);
-
-//   void addPreISel(AddIRPass &addPass) const;
-//   void addAsmPrinter(AddMachinePass &, CreateMCStreamer) const;
-//   Error addInstSelector(AddMachinePass &) const;
-// };
-
-// }
-
-// R600CodeGenPassBuilder::R600CodeGenPassBuilder(
-//     R600TargetMachine &TM, const CGPassBuilderOption &Opts,
-//     PassInstrumentationCallbacks *PIC)
-//     :AMDGPUCodeGenPassBuilder<R600CodeGenPassBuilder, R600TargetMachine>(TM, Opts, PIC) {
-//   Opt.RequiresCodeGenSCCOrder = true;
-// }
-
-// void R600CodeGenPassBuilder::addPreISel(AddIRPass &addPass) const {
-//   // TODO: Add passes pre instruction selection.
-// }
-
-// void R600CodeGenPassBuilder::addAsmPrinter(AddMachinePass &addPass,
-//                                            CreateMCStreamer) const {
-//   // TODO: Add AsmPrinter.
-// }
-
-// Error R600CodeGenPassBuilder::addInstSelector(AddMachinePass &) const {
-//   // TODO: Add instruction selector.
-//   return Error::success();
-// }
-
-// Error R600TargetMachine::buildCodeGenPipeline(
-//     ModulePassManager &MPM, raw_pwrite_stream &Out, raw_pwrite_stream *DwoOut,
-//     CodeGenFileType FileType, const CGPassBuilderOption &Opts,
-//     PassInstrumentationCallbacks *PIC) {
-//   auto CGPB = R600CodeGenPassBuilder(*this, Opts, PIC);
-//   return CGPB.buildPipeline(MPM, Out, DwoOut, FileType);
-// }

@@ -10,6 +10,7 @@
 #include "llvm/Transforms/Utils/LowerSwitch.h"
 #include "llvm/Transforms/Vectorize/LoadStoreVectorizer.h"
 #include "llvm/Transforms/Scalar/InferAddressSpaces.h"
+#include "llvm/CodeGen/AtomicExpand.h"
 
 using namespace llvm;
 
@@ -44,7 +45,14 @@ namespace {
       return PreservedAnalyses::all();                                         \
     }                                                                          \
   };
-#define DUMMY_FUNCTION_PASS(NAME, PASS_NAME, CONSTRUCTOR)                      \
+#define DUMMY_LOOP_PASS(NAME, PASS_NAME, CONSTRUCTOR)                          \
+  struct PASS_NAME : public PassInfoMixin<PASS_NAME> {                         \
+    template <typename... Ts> PASS_NAME(Ts &&...) {}                           \
+    PreservedAnalyses run(Loop &, LoopAnalysisManager &) {                     \
+      return PreservedAnalyses::all();                                         \
+    }                                                                          \
+  };
+  #define DUMMY_FUNCTION_PASS(NAME, PASS_NAME, CONSTRUCTOR)                    \
   struct PASS_NAME : public PassInfoMixin<PASS_NAME> {                         \
     template <typename... Ts> PASS_NAME(Ts &&...) {}                           \
     PreservedAnalyses run(Function &, FunctionAnalysisManager &) {             \
@@ -69,9 +77,16 @@ class AMDGPUCodeGenPassBuilder
     : public CodeGenPassBuilder<DerivedT, TargetMachineT> {
 public:
   explicit AMDGPUCodeGenPassBuilder(TargetMachineT &TM,
-                                    CGPassBuilderOption Opts,
+                                    CGPassBuilderOption Opt,
                                     PassInstrumentationCallbacks *PIC)
-      : CodeGenPassBuilder<DerivedT, TargetMachineT>(TM, Opts, PIC) {}
+      : CodeGenPassBuilder<DerivedT, TargetMachineT>(TM, Opt, PIC) {
+   Opt.RequiresCodeGenSCCOrder = true;
+  // Exceptions and StackMaps are not supported, so these passes will never do
+  // anything.
+  // Garbage collection is not supported.
+   CodeGenPassBuilder<DerivedT, TargetMachineT>::template disablePass<StackMapLivenessPass, FuncletLayoutPass,
+              ShadowStackGCLoweringPass>();
+      }
 
   bool isPassEnabled(const cl::opt<bool> &Opt,
                      CodeGenOptLevel Level = CodeGenOptLevel::Default) const {
@@ -81,10 +96,6 @@ public:
       return false;
     return Opt;
   }
-
-  //    FIXME: Port MachineScheduler Pass
-  //    ScheduleDAGInstrs *
-  //   createMachineScheduler(MachineSchedContext *C) const ;
 
   AMDGPUTargetMachine &getAMDGPUTargetMachine() const {
     return CodeGenPassBuilder<DerivedT, TargetMachineT>::template getTM<
@@ -240,7 +251,7 @@ void AMDGPUCodeGenPassBuilder<DerivedT, TargetMachineT>::addIRPasses(
   }
 
   TargetMachineT* PtrTm = &(CodeGenPassBuilder<DerivedT, TargetMachineT>::TM);  
- // addPass(AtomicExpandPass(PtrTm));
+  addPass(AtomicExpandPass(PtrTm));
 
   if (CodeGenPassBuilder<DerivedT, TargetMachineT>::getOptLevel() >
       CodeGenOptLevel::None) {
@@ -272,7 +283,7 @@ void AMDGPUCodeGenPassBuilder<DerivedT, TargetMachineT>::addIRPasses(
     // have expanded.
     if (CodeGenPassBuilder<DerivedT, TargetMachineT>::getOptLevel() >
         CodeGenOptLevel::Less) {
-     //  addPass(createFunctionToLoopPassAdaptor(LICMPass()));
+     //  addPass(createFunctionToLoopPassAdaptor(LICMPass())); NEW_ERROR
     }
   }
 
