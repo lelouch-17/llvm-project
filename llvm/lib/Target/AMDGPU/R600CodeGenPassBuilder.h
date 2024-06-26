@@ -18,9 +18,12 @@ public:
   R600CodeGenPassBuilder(R600TargetMachine &TM, const CGPassBuilderOption &Opts,
                          PassInstrumentationCallbacks *PIC);
 
-   void addPreISel(AddIRPass &addPass) const;
+  void addPreISel(AddIRPass &addPass) const;
   void addAsmPrinter(AddMachinePass &, CreateMCStreamer) const;
- Error addInstSelector(AddMachinePass &) const;
+  Error addInstSelector(AddMachinePass &) const;
+  void addPreRegAlloc(AddMachinePass &) const;
+  void addPreSched2(AddMachinePass &) const;
+  void addPreEmitPass(AddMachinePass &) const;
 };
 
 }

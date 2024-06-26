@@ -23,12 +23,12 @@
 
 using namespace llvm;
 
-static cl::opt<bool>
+ cl::opt<bool>
     EnableR600StructurizeCFG("r600-ir-structurize",
                              cl::desc("Use StructurizeCFG IR pass"),
                              cl::init(true));
 
-static cl::opt<bool> EnableR600IfConvert("r600-if-convert",
+ cl::opt<bool> EnableR600IfConvert("r600-if-convert",
                                          cl::desc("Use if conversion pass"),
                                          cl::ReallyHidden, cl::init(true));
 

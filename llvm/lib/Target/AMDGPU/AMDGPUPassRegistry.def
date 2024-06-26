@@ -124,8 +124,16 @@ DUMMY_MACHINE_FUNCTION_PASS("amdgpu-insert-delay-alu-dummy", AMDGPUInsertDelayAl
 DUMMY_MACHINE_FUNCTION_PASS("gcn-dpp-combine-dummy", GCNDPPCombinePass, ())
 DUMMY_MACHINE_FUNCTION_PASS("si-peephole-sdwa-dummy", SIPeepholeSDWAPass, ())
 DUMMY_MACHINE_FUNCTION_PASS("si-form-memory-clauses", SIFormMemoryClausesPass, ())
-
-
+// Put some of it into machinepassregistry.def
+DUMMY_MACHINE_FUNCTION_PASS("si-form-memory-clauses", R600ControlFlowFinalizer, ())
+DUMMY_MACHINE_FUNCTION_PASS("si-form-memory-clauses", R600Packetizer, ())
+DUMMY_MACHINE_FUNCTION_PASS("si-form-memory-clauses", R600ExpandSpecialInstrsPass, ())
+DUMMY_MACHINE_FUNCTION_PASS("si-form-memory-clauses", R600MachineCFGStructurizerPass, ())
+DUMMY_MACHINE_FUNCTION_PASS("si-form-memory-clauses", FinalizeMachineBundlesPass, ())
+DUMMY_MACHINE_FUNCTION_PASS("si-form-memory-clauses", R600EmitClauseMarkers, ())
+DUMMY_MACHINE_FUNCTION_PASS("si-form-memory-clauses", R600ClauseMergePass, ())
+DUMMY_MACHINE_FUNCTION_PASS("si-form-memory-clauses", IfConverterPass, ())
+DUMMY_MACHINE_FUNCTION_PASS("si-form-memory-clauses", R600VectorRegMerger, ())
 #undef DUMMY_MACHINE_FUNCTION_PASS//===- AMDGPUPassRegistry.def - Registry of AMDGPU passes -------*- C++ -*-===//
 //
 // Part of the LLVM Project, under the Apache License v2.0 with LLVM Exceptions.
@@ -138,9 +146,7 @@ DUMMY_MACHINE_FUNCTION_PASS("si-form-memory-clauses", SIFormMemoryClausesPass, (
 // AMDGPU backend.
 //
 //===----------------------------------------------------------------------===//
-
 // NOTE: NO INCLUDE GUARD DESIRED!
-
 #ifndef MODULE_PASS
 #define MODULE_PASS(NAME, CREATE_PASS)
 #endif
@@ -153,7 +159,6 @@ MODULE_PASS("amdgpu-lower-module-lds", AMDGPULowerModuleLDSPass(*this))
 MODULE_PASS("amdgpu-printf-runtime-binding", AMDGPUPrintfRuntimeBindingPass())
 MODULE_PASS("amdgpu-unify-metadata", AMDGPUUnifyMetadataPass())
 #undef MODULE_PASS
-
 #ifndef FUNCTION_PASS
 #define FUNCTION_PASS(NAME, CREATE_PASS)
 #endif
@@ -175,11 +180,9 @@ FUNCTION_PASS("amdgpu-unify-divergent-exit-nodes",
               AMDGPUUnifyDivergentExitNodesPass())
 FUNCTION_PASS("amdgpu-usenative", AMDGPUUseNativeCallsPass())
 #undef FUNCTION_PASS
-
 #ifndef FUNCTION_ANALYSIS
 #define FUNCTION_ANALYSIS(NAME, CREATE_PASS)
 #endif
-
 #ifndef FUNCTION_ALIAS_ANALYSIS
 #define FUNCTION_ALIAS_ANALYSIS(NAME, CREATE_PASS)                             \
   FUNCTION_ANALYSIS(NAME, CREATE_PASS)
@@ -187,7 +190,6 @@ FUNCTION_PASS("amdgpu-usenative", AMDGPUUseNativeCallsPass())
 FUNCTION_ALIAS_ANALYSIS("amdgpu-aa", AMDGPUAA())
 #undef FUNCTION_ALIAS_ANALYSIS
 #undef FUNCTION_ANALYSIS
-
 #ifndef FUNCTION_PASS_WITH_PARAMS
 #define FUNCTION_PASS_WITH_PARAMS(NAME, CLASS, CREATE_PASS, PARSER, PARAMS)
 #endif
@@ -199,7 +201,6 @@ FUNCTION_PASS_WITH_PARAMS(
     },
     parseAMDGPUAtomicOptimizerStrategy, "strategy=dpp|iterative|none")
 #undef FUNCTION_PASS_WITH_PARAMS
-
 #ifndef MACHINE_FUNCTION_PASS
 #define MACHINE_FUNCTION_PASS(NAME, CREATE_PASS)
 #endif
