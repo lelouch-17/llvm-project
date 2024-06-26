@@ -659,8 +659,8 @@ parseAMDGPUAtomicOptimizerStrategy(StringRef Params) {
 void AMDGPUTargetMachine::registerPassBuilderCallbacks(
     PassBuilder &PB, bool PopulateClassToPassNames) {
 
-  // #define GET_PASS_REGISTRY "AMDGPUPassRegistry.def"
-  // #include "llvm/Passes/TargetPassRegistry.inc"
+  #define GET_PASS_REGISTRY "AMDGPUPassRegistry.def"
+  #include "llvm/Passes/TargetPassRegistry.inc"
 
   PB.registerPipelineStartEPCallback(
       [](ModulePassManager &PM, OptimizationLevel Level) {

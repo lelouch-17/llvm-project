@@ -187,6 +187,7 @@ DUMMY_MACHINE_FUNCTION_PASS("fixup-statepoint-caller-saved", FixupStatepointCall
 DUMMY_MACHINE_FUNCTION_PASS("fs-profile-loader", MIRProfileLoaderNewPass)
 DUMMY_MACHINE_FUNCTION_PASS("funclet-layout", FuncletLayoutPass)
 DUMMY_MACHINE_FUNCTION_PASS("gc-empty-basic-blocks", GCEmptyBasicBlocksPass)
+DUMMY_MACHINE_FUNCTION_PASS("si-form-memory-clauses", IfConverterPass)
 DUMMY_MACHINE_FUNCTION_PASS("implicit-null-checks", ImplicitNullChecksPass)
 DUMMY_MACHINE_FUNCTION_PASS("init-undef-pass", InitUndefPass)
 DUMMY_MACHINE_FUNCTION_PASS("instruction-select", InstructionSelectPass)

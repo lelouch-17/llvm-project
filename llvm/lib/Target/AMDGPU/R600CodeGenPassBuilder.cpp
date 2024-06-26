@@ -47,7 +47,7 @@ void R600CodeGenPassBuilder::addPreRegAlloc(AddMachinePass &addPass) const {
   void R600CodeGenPassBuilder::addPreSched2(AddMachinePass &addPass) const {
  addPass(R600EmitClauseMarkers());
   if (EnableR600IfConvert)
-    addPass(IfConverterPass());  // Machpassreg.def
+    addPass(IfConverterPass()); 
   addPass(R600ClauseMergePass());
   };
   void R600CodeGenPassBuilder::addPreEmitPass(AddMachinePass &addPass) const {

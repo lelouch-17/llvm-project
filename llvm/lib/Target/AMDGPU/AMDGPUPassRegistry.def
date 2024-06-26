@@ -1,4 +1,4 @@
-//===- AMDGPUPassRegistry.def - Registry of passes for AMDGPU ---*- C++ -*-===//
+//===- AMDGPUPassRegistry.def - Registry of AMDGPU passes -------*- C++ -*-===//
 //
 // Part of the LLVM Project, under the Apache License v2.0 with LLVM Exceptions.
 // See https://llvm.org/LICENSE.txt for license information.
@@ -6,32 +6,14 @@
 //
 //===----------------------------------------------------------------------===//
 //
-// AMDGPU pass registry
+// This file is used as the registry of passes that are part of the
+// AMDGPU backend.
 //
 //===----------------------------------------------------------------------===//
-
 // NOTE: NO INCLUDE GUARD DESIRED!
+
 // Move all passes to dummy table to normal table once they are ported to the 
 // new pass manager interface.
-
-#ifndef FUNCTION_PASS
-#define FUNCTION_PASS(NAME, PASS_NAME, CONSTRUCTOR)
-#endif
-FUNCTION_PASS("amdgpu-image-intrinsic-opt", AMDGPUImageIntrinsicOptimizerPass, (getTM<AMDGPUTargetMachine>()))
-FUNCTION_PASS("amdgpu-atomic-optimizer", AMDGPUAtomicOptimizerPass, (getTM<AMDGPUTargetMachine>(), ScanOptions::None))
-FUNCTION_PASS("amdgpu-promote-alloca", AMDGPUPromoteAllocaPass, (getTM<AMDGPUTargetMachine>()))
-FUNCTION_PASS("amdgpu-codegenprepare", AMDGPUCodeGenPreparePass, (getTM<AMDGPUTargetMachine>()))
-FUNCTION_PASS("amdgpu-lower-kernel-arguments", AMDGPULowerKernelArgumentsPass, (getTM<AMDGPUTargetMachine>()))
-FUNCTION_PASS("amdgpu-rewrite-undef-for-phi", AMDGPURewriteUndefForPHIPass, ())
-FUNCTION_PASS("load-store-vectorizer", LoadStoreVectorizerPass, ())
-FUNCTION_PASS("lowerswitch", LowerSwitchPass, ())
-FUNCTION_PASS("separate-const-offset-from-gep", SeparateConstOffsetFromGEPPass, ())
-FUNCTION_PASS("slsr", StraightLineStrengthReducePass, ())
-FUNCTION_PASS("nary-reassociate", NaryReassociatePass, ())
-FUNCTION_PASS("gvn", GVNPass, ())
-FUNCTION_PASS("early-cse", EarlyCSEPass, ())
-FUNCTION_PASS("amdgpu-aa", AMDGPUAA, ()) 
-#undef FUNCTION_PASS
 
 #ifndef DUMMY_FUNCTION_PASS
 #define DUMMY_FUNCTION_PASS(NAME, PASS_NAME, CONSTRUCTOR)
@@ -49,15 +31,6 @@ DUMMY_FUNCTION_PASS("si-form-memory-clauses", AMDGPUPerfHintAnalysisPass, ()) //
 DUMMY_LOOP_PASS("licm", LICMPass, ())
 #undef DUMMY_LOOP_PASS
 
-#ifndef MODULE_PASS
-#define MODULE_PASS(NAME, PASS_NAME, CONSTRUCTOR)
-#endif
-MODULE_PASS("amdgpu-printf-runtime-binding", AMDGPUPrintfRuntimeBindingPass, ())
-MODULE_PASS("amdgpu-always-inline", AMDGPUAlwaysInlinePass, ())
-MODULE_PASS("amdgpu-attributor", AMDGPUAttributorPass, (getTM<AMDGPUTargetMachine>()))
-MODULE_PASS("amdgpu-lower-module-lds", AMDGPULowerModuleLDSPass, (getTM<AMDGPUTargetMachine>()))
-
-#undef MODULE_PASS
 
 #ifndef DUMMY_MODULE_PASS
 #define DUMMY_MODULE_PASS(NAME, PASS_NAME, CONSTRUCTOR)
@@ -71,13 +44,6 @@ DUMMY_MODULE_PASS("amdgpu-remove-incompatible-functions-dummy", AMDGPURemoveInco
 
 #undef DUMMY_MODULE_PASS
 
-
-#ifndef MACHINE_FUNCTION_PASS
-#define MACHINE_FUNCTION_PASS(NAME, PASS_NAME, CONSTRUCTOR)
-MACHINE_FUNCTION_PASS("free-machine-function", FreeMachineFunctionPass, ())
-#endif
-
-#undef MACHINE_FUNCTION_PASS
 
 // PASS_NAME is for mocking machine passes, remove it after all machine passes
 // are added new pass manager interface.
@@ -124,29 +90,16 @@ DUMMY_MACHINE_FUNCTION_PASS("amdgpu-insert-delay-alu-dummy", AMDGPUInsertDelayAl
 DUMMY_MACHINE_FUNCTION_PASS("gcn-dpp-combine-dummy", GCNDPPCombinePass, ())
 DUMMY_MACHINE_FUNCTION_PASS("si-peephole-sdwa-dummy", SIPeepholeSDWAPass, ())
 DUMMY_MACHINE_FUNCTION_PASS("si-form-memory-clauses", SIFormMemoryClausesPass, ())
-// Put some of it into machinepassregistry.def
-DUMMY_MACHINE_FUNCTION_PASS("si-form-memory-clauses", R600ControlFlowFinalizer, ())
-DUMMY_MACHINE_FUNCTION_PASS("si-form-memory-clauses", R600Packetizer, ())
-DUMMY_MACHINE_FUNCTION_PASS("si-form-memory-clauses", R600ExpandSpecialInstrsPass, ())
-DUMMY_MACHINE_FUNCTION_PASS("si-form-memory-clauses", R600MachineCFGStructurizerPass, ())
-DUMMY_MACHINE_FUNCTION_PASS("si-form-memory-clauses", FinalizeMachineBundlesPass, ())
-DUMMY_MACHINE_FUNCTION_PASS("si-form-memory-clauses", R600EmitClauseMarkers, ())
-DUMMY_MACHINE_FUNCTION_PASS("si-form-memory-clauses", R600ClauseMergePass, ())
-DUMMY_MACHINE_FUNCTION_PASS("si-form-memory-clauses", IfConverterPass, ())
-DUMMY_MACHINE_FUNCTION_PASS("si-form-memory-clauses", R600VectorRegMerger, ())
-#undef DUMMY_MACHINE_FUNCTION_PASS//===- AMDGPUPassRegistry.def - Registry of AMDGPU passes -------*- C++ -*-===//
-//
-// Part of the LLVM Project, under the Apache License v2.0 with LLVM Exceptions.
-// See https://llvm.org/LICENSE.txt for license information.
-// SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
-//
-//===----------------------------------------------------------------------===//
-//
-// This file is used as the registry of passes that are part of the
-// AMDGPU backend.
-//
-//===----------------------------------------------------------------------===//
-// NOTE: NO INCLUDE GUARD DESIRED!
+DUMMY_MACHINE_FUNCTION_PASS("R600-Control-Flow-Finalizer", R600ControlFlowFinalizer, ())
+DUMMY_MACHINE_FUNCTION_PASS("R600-Packetizer", R600Packetizer, ())
+DUMMY_MACHINE_FUNCTION_PASS("R600-Expand-Special-Instrs", R600ExpandSpecialInstrsPass, ())
+DUMMY_MACHINE_FUNCTION_PASS("AMDGPU-CFG-Structurizer", R600MachineCFGStructurizerPass, ())
+DUMMY_MACHINE_FUNCTION_PASS("si-form-memory-clauses", FinalizeMachineBundlesPass, ()) // R600 
+DUMMY_MACHINE_FUNCTION_PASS("R600-Emit-Clause-Markers", R600EmitClauseMarkers, ())
+DUMMY_MACHINE_FUNCTION_PASS("R600-Clause-Merge", R600ClauseMergePass, ())
+DUMMY_MACHINE_FUNCTION_PASS("R600-Vector-Reg-Merger", R600VectorRegMerger, ())
+#undef DUMMY_MACHINE_FUNCTION_PASS
+
 #ifndef MODULE_PASS
 #define MODULE_PASS(NAME, CREATE_PASS)
 #endif
