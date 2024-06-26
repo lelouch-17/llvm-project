@@ -153,7 +153,7 @@ MACHINE_FUNCTION_PASS_WITH_PARAMS(
 #ifndef DUMMY_FUNCTION_PASS
 #define DUMMY_FUNCTION_PASS(NAME, PASS_NAME)
 #endif
-DUMMY_FUNCTION_PASS("atomic-expand", AtomicExpandPass)
+// DUMMY_FUNCTION_PASS("atomic-expand", AtomicExpandPass) already ported
 #undef DUMMY_FUNCTION_PASS
 
 #ifndef DUMMY_MACHINE_MODULE_PASS
@@ -188,6 +188,7 @@ DUMMY_MACHINE_FUNCTION_PASS("fixup-statepoint-caller-saved", FixupStatepointCall
 DUMMY_MACHINE_FUNCTION_PASS("fs-profile-loader", MIRProfileLoaderNewPass)
 DUMMY_MACHINE_FUNCTION_PASS("funclet-layout", FuncletLayoutPass)
 DUMMY_MACHINE_FUNCTION_PASS("gc-empty-basic-blocks", GCEmptyBasicBlocksPass)
+DUMMY_MACHINE_FUNCTION_PASS("si-form-memory-clauses", IfConverterPass)
 DUMMY_MACHINE_FUNCTION_PASS("implicit-null-checks", ImplicitNullChecksPass)
 DUMMY_MACHINE_FUNCTION_PASS("init-undef-pass", InitUndefPass)
 DUMMY_MACHINE_FUNCTION_PASS("instruction-select", InstructionSelectPass)
@@ -197,6 +198,7 @@ DUMMY_MACHINE_FUNCTION_PASS("legalizer", LegalizerPass)
 DUMMY_MACHINE_FUNCTION_PASS("livedebugvalues", LiveDebugValuesPass)
 DUMMY_MACHINE_FUNCTION_PASS("liveintervals", LiveIntervalsPass)
 DUMMY_MACHINE_FUNCTION_PASS("lrshrink", LiveRangeShrinkPass)
+DUMMY_MACHINE_FUNCTION_PASS("Localizer", LocalizerPass)
 DUMMY_MACHINE_FUNCTION_PASS("machine-combiner", MachineCombinerPass)
 DUMMY_MACHINE_FUNCTION_PASS("machine-cp", MachineCopyPropagationPass)
 DUMMY_MACHINE_FUNCTION_PASS("machine-cse", MachineCSEPass)

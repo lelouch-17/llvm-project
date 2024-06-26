@@ -52,12 +52,6 @@ public:
     return TLOF.get();
   }
 
-  Error buildCodeGenPipeline(ModulePassManager &MPM, raw_pwrite_stream &Out,
-                             raw_pwrite_stream *DwoOut,
-                             CodeGenFileType FileType,
-                             const CGPassBuilderOption &Opts,
-                             PassInstrumentationCallbacks *PIC) override;
-
   void registerPassBuilderCallbacks(PassBuilder &PB,
                                     bool PopulateClassToPassNames) override;
   void registerDefaultAliasAnalyses(AAManager &) override;
@@ -117,6 +111,11 @@ public:
                                 PerFunctionMIParsingState &PFS,
                                 SMDiagnostic &Error,
                                 SMRange &SourceRange) const override;
+
+  Error buildCodeGenPipeline(ModulePassManager &, raw_pwrite_stream &,
+                             raw_pwrite_stream *, CodeGenFileType,
+                             const CGPassBuilderOption &,
+                             PassInstrumentationCallbacks *) override;
 };
 
 //===----------------------------------------------------------------------===//
