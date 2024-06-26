@@ -38,28 +38,28 @@ extern cl::opt<bool> EnableAMDGPUAliasAnalysis;
 extern cl::opt<bool> EnableLoadStoreVectorizer;
 
 namespace {
-#define DUMMY_MODULE_PASS(NAME, PASS_NAME, CONSTRUCTOR)                        \
+#define DUMMY_MODULE_PASS(NAME, PASS_NAME)                        \
   struct PASS_NAME : public PassInfoMixin<PASS_NAME> {                         \
     template <typename... Ts> PASS_NAME(Ts &&...) {}                           \
     PreservedAnalyses run(Module &, ModuleAnalysisManager &) {                 \
       return PreservedAnalyses::all();                                         \
     }                                                                          \
   };
-#define DUMMY_LOOP_PASS(NAME, PASS_NAME, CONSTRUCTOR)                          \
+#define DUMMY_LOOP_PASS(NAME, PASS_NAME)                          \
   struct PASS_NAME : public PassInfoMixin<PASS_NAME> {                         \
     template <typename... Ts> PASS_NAME(Ts &&...) {}                           \
     PreservedAnalyses run(Loop &, LoopAnalysisManager &) {                     \
       return PreservedAnalyses::all();                                         \
     }                                                                          \
   };
-  #define DUMMY_FUNCTION_PASS(NAME, PASS_NAME, CONSTRUCTOR)                    \
+  #define DUMMY_FUNCTION_PASS(NAME, PASS_NAME)                    \
   struct PASS_NAME : public PassInfoMixin<PASS_NAME> {                         \
     template <typename... Ts> PASS_NAME(Ts &&...) {}                           \
     PreservedAnalyses run(Function &, FunctionAnalysisManager &) {             \
       return PreservedAnalyses::all();                                         \
     }                                                                          \
   };
-#define DUMMY_MACHINE_FUNCTION_PASS(NAME, PASS_NAME, CONSTRUCTOR)              \
+#define DUMMY_MACHINE_FUNCTION_PASS(NAME, PASS_NAME)              \
   struct PASS_NAME : public PassInfoMixin<PASS_NAME> {                         \
     template <typename... Ts> PASS_NAME(Ts &&...) {}                           \
     PreservedAnalyses run(MachineFunction &,                                   \
