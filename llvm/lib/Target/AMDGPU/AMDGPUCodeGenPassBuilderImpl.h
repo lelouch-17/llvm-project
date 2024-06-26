@@ -86,14 +86,7 @@ public:
   explicit AMDGPUCodeGenPassBuilder(TargetMachineT &TM,
                                     CGPassBuilderOption Opt,
                                     PassInstrumentationCallbacks *PIC)
-      : CodeGenPassBuilder<DerivedT, TargetMachineT>(TM, Opt, PIC) {
-   Opt.RequiresCodeGenSCCOrder = true;
-  // Exceptions and StackMaps are not supported, so these passes will never do
-  // anything.
-  // Garbage collection is not supported.
-   CodeGenPassBuilder<DerivedT, TargetMachineT>::template disablePass<StackMapLivenessPass, FuncletLayoutPass,
-              ShadowStackGCLoweringPass>();
-      }
+      : CodeGenPassBuilder<DerivedT, TargetMachineT>(TM, Opt, PIC) {}
 
   bool isPassEnabled(const cl::opt<bool> &Opt,
                      CodeGenOptLevel Level = CodeGenOptLevel::Default) const {

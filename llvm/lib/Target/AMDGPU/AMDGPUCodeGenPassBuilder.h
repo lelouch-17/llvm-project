@@ -8,21 +8,12 @@ public:
                         PassInstrumentationCallbacks *PIC)
       : AMDGPUCodeGenPassBuilder<GCNCodeGenPassBuilder, GCNTargetMachine>(
             TM, Opt, PIC) {
-    //  // It is necessary to know the register usage of the entire call graph.  We
-    // // allow calls without EnableAMDGPUFunctionCalls if they are marked
-    // // noinline, so this is always required.
-    // FIXME: 
-    // setRequiresCodeGenSCCOrder(true);
-    // Target could set CGPassBuilderOption::MISchedPostRA to true to achieve
-    //     substitutePass(&PostRASchedulerID, &PostMachineSchedulerID)
+    Opt.RequiresCodeGenSCCOrder = true;
+  // Exceptions and StackMaps are not supported, so these passes will never do
+  // anything.
+  // Garbage collection is not supported.
+   disablePass<StackMapLivenessPass, FuncletLayoutPass, ShadowStackGCLoweringPass>();
   }
-
-  // FIXME: Port MachineScheduler Pass
-  // ScheduleDAGInstrs *
-  // createMachineScheduler(MachineSchedContext *C) const;
-
-  // ScheduleDAGInstrs *
-  // createPostMachineScheduler(MachineSchedContext *C) const;
 
   void addPreISel(AddIRPass &) const;
   void addMachineSSAOptimization(AddMachinePass &) const;
