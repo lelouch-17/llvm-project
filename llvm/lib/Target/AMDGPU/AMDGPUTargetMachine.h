@@ -52,8 +52,6 @@ public:
     return TLOF.get();
   }
 
-
-
   void registerPassBuilderCallbacks(PassBuilder &PB) override;
   void registerDefaultAliasAnalyses(AAManager &) override;
 

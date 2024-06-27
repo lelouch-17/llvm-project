@@ -135,8 +135,7 @@ public:
   }
 
   Error buildPipeline(ModulePassManager &MPM, raw_pwrite_stream &Out,
-                      raw_pwrite_stream *DwoOut,
-                      CodeGenFileType FileType);
+                      raw_pwrite_stream *DwoOut, CodeGenFileType FileType);
 
   PassInstrumentationCallbacks *getPassInstrumentationCallbacks() const {
     return PIC;

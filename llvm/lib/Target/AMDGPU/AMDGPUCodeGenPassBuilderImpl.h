@@ -1,19 +1,18 @@
 #include "AMDGPU.h"
 #include "AMDGPUTargetMachine.h"
+#include "llvm/CodeGen/AtomicExpand.h"
 #include "llvm/Passes/CodeGenPassBuilder.h"
 #include "llvm/Transforms/Scalar/EarlyCSE.h"
 #include "llvm/Transforms/Scalar/FlattenCFG.h"
 #include "llvm/Transforms/Scalar/GVN.h"
+#include "llvm/Transforms/Scalar/InferAddressSpaces.h"
 #include "llvm/Transforms/Scalar/NaryReassociate.h"
 #include "llvm/Transforms/Scalar/SeparateConstOffsetFromGEP.h"
 #include "llvm/Transforms/Scalar/StraightLineStrengthReduce.h"
 #include "llvm/Transforms/Utils/LowerSwitch.h"
 #include "llvm/Transforms/Vectorize/LoadStoreVectorizer.h"
-#include "llvm/Transforms/Scalar/InferAddressSpaces.h"
-#include "llvm/CodeGen/AtomicExpand.h"
 
 using namespace llvm;
-
 
 extern cl::opt<bool> EnableLowerKernelArguments;
 
@@ -21,13 +20,11 @@ extern cl::opt<bool> RemoveIncompatibleFunctions;
 
 extern cl::opt<bool> LowerCtorDtor;
 
-
 extern cl::opt<bool> EnableImageIntrinsicOptimizer;
 
 extern cl::opt<bool, true> EnableLowerModuleLDS;
 
 extern cl::opt<ScanOptions> AMDGPUAtomicOptimizerStrategy;
-
 
 extern cl::opt<bool> EnableScalarIRPasses;
 
@@ -38,21 +35,21 @@ extern cl::opt<bool> EnableAMDGPUAliasAnalysis;
 extern cl::opt<bool> EnableLoadStoreVectorizer;
 
 namespace {
-#define DUMMY_MODULE_PASS(NAME, PASS_NAME)                        \
+#define DUMMY_MODULE_PASS(NAME, PASS_NAME)                                     \
   struct PASS_NAME : public PassInfoMixin<PASS_NAME> {                         \
     template <typename... Ts> PASS_NAME(Ts &&...) {}                           \
     PreservedAnalyses run(Module &, ModuleAnalysisManager &) {                 \
       return PreservedAnalyses::all();                                         \
     }                                                                          \
   };
-  #define DUMMY_FUNCTION_PASS(NAME, PASS_NAME)                    \
+#define DUMMY_FUNCTION_PASS(NAME, PASS_NAME)                                   \
   struct PASS_NAME : public PassInfoMixin<PASS_NAME> {                         \
     template <typename... Ts> PASS_NAME(Ts &&...) {}                           \
     PreservedAnalyses run(Function &, FunctionAnalysisManager &) {             \
       return PreservedAnalyses::all();                                         \
     }                                                                          \
   };
-#define DUMMY_MACHINE_FUNCTION_PASS(NAME, PASS_NAME)              \
+#define DUMMY_MACHINE_FUNCTION_PASS(NAME, PASS_NAME)                           \
   struct PASS_NAME : public PassInfoMixin<PASS_NAME> {                         \
     template <typename... Ts> PASS_NAME(Ts &&...) {}                           \
     PreservedAnalyses run(MachineFunction &,                                   \
@@ -63,14 +60,13 @@ namespace {
   };                                                                           \
   AnalysisKey PASS_NAME::Key;
 #include "AMDGPUPassRegistry.def"
-}
+} // namespace
 
 template <typename DerivedT, typename TargetMachineT>
 class AMDGPUCodeGenPassBuilder
     : public CodeGenPassBuilder<DerivedT, TargetMachineT> {
 public:
-  explicit AMDGPUCodeGenPassBuilder(TargetMachineT &TM,
-                                    CGPassBuilderOption Opt,
+  explicit AMDGPUCodeGenPassBuilder(TargetMachineT &TM, CGPassBuilderOption Opt,
                                     PassInstrumentationCallbacks *PIC)
       : CodeGenPassBuilder<DerivedT, TargetMachineT>(TM, Opt, PIC) {}
 
@@ -144,7 +140,8 @@ template <typename DerivedT, typename TargetMachineT>
 void AMDGPUCodeGenPassBuilder<DerivedT, TargetMachineT>::addEarlyCSEOrGVNPass(
     typename CodeGenPassBuilder<DerivedT, TargetMachineT>::AddIRPass &addPass)
     const {
-  if (CodeGenPassBuilder<DerivedT, TargetMachineT>::getOptLevel() == CodeGenOptLevel::Aggressive)
+  if (CodeGenPassBuilder<DerivedT, TargetMachineT>::getOptLevel() ==
+      CodeGenOptLevel::Aggressive)
     addPass(GVNPass());
   else
     addPass(EarlyCSEPass());
@@ -189,7 +186,9 @@ void AMDGPUCodeGenPassBuilder<DerivedT, TargetMachineT>::addIRPasses(
     addPass(AMDGPURemoveIncompatibleFunctionsPass());
 
   // There is no reason to run these.
-  const_cast<AMDGPUCodeGenPassBuilder*>(this)->template disablePass<StackMapLivenessPass,FuncletLayoutPass,PatchableFunctionPass>();
+  const_cast<AMDGPUCodeGenPassBuilder *>(this)
+      ->template disablePass<StackMapLivenessPass, FuncletLayoutPass,
+                             PatchableFunctionPass>();
 
   addPass(AMDGPUPrintfRuntimeBindingPass());
 
@@ -230,13 +229,17 @@ void AMDGPUCodeGenPassBuilder<DerivedT, TargetMachineT>::addIRPasses(
     addPass(InferAddressSpacesPass());
 
   // Run atomic optimizer before Atomic Expand
-  if ((CodeGenPassBuilder<DerivedT, TargetMachineT>::TM.getTargetTriple().getArch() == Triple::amdgcn) &&
-      (CodeGenPassBuilder<DerivedT, TargetMachineT>::getOptLevel() >= CodeGenOptLevel::Less) &&
+  if ((CodeGenPassBuilder<DerivedT, TargetMachineT>::TM.getTargetTriple()
+           .getArch() == Triple::amdgcn) &&
+      (CodeGenPassBuilder<DerivedT, TargetMachineT>::getOptLevel() >=
+       CodeGenOptLevel::Less) &&
       (AMDGPUAtomicOptimizerStrategy != ScanOptions::None)) {
-    addPass(AMDGPUAtomicOptimizerPass(CodeGenPassBuilder<DerivedT, TargetMachineT>::TM, AMDGPUAtomicOptimizerStrategy));
+    addPass(AMDGPUAtomicOptimizerPass(
+        CodeGenPassBuilder<DerivedT, TargetMachineT>::TM,
+        AMDGPUAtomicOptimizerStrategy));
   }
 
-  TargetMachineT* PtrTm = &(CodeGenPassBuilder<DerivedT, TargetMachineT>::TM);  
+  TargetMachineT *PtrTm = &(CodeGenPassBuilder<DerivedT, TargetMachineT>::TM);
   addPass(AtomicExpandPass(PtrTm));
 
   if (CodeGenPassBuilder<DerivedT, TargetMachineT>::getOptLevel() >
@@ -248,8 +251,8 @@ void AMDGPUCodeGenPassBuilder<DerivedT, TargetMachineT>::addIRPasses(
       addStraightLineScalarOptimizationPasses(addPass);
 
     if (EnableAMDGPUAliasAnalysis) {
-      // FIXME_NEW: Add these passes to the pipeline  
-      //addPass(AMDGPUAA());
+      // FIXME_NEW: Add these passes to the pipeline
+      // addPass(AMDGPUAA());
       // addPass(createExternalAAWrapperPass([](Pass &P, Function &,
       //                                        AAResults &AAR) {
       //   if (auto *WrapperPass =
@@ -269,8 +272,8 @@ void AMDGPUCodeGenPassBuilder<DerivedT, TargetMachineT>::addIRPasses(
     // have expanded.
     if (CodeGenPassBuilder<DerivedT, TargetMachineT>::getOptLevel() >
         CodeGenOptLevel::Less) {
-     // FIXME_NEW : Add this loop pass
-     //  addPass(createFunctionToLoopPassAdaptor(LICMPass())); 
+      // FIXME_NEW : Add this loop pass
+      //  addPass(createFunctionToLoopPassAdaptor(LICMPass()));
     }
   }
 

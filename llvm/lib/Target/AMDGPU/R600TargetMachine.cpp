@@ -23,14 +23,13 @@
 
 using namespace llvm;
 
- cl::opt<bool>
-    EnableR600StructurizeCFG("r600-ir-structurize",
-                             cl::desc("Use StructurizeCFG IR pass"),
-                             cl::init(true));
+cl::opt<bool> EnableR600StructurizeCFG("r600-ir-structurize",
+                                       cl::desc("Use StructurizeCFG IR pass"),
+                                       cl::init(true));
 
- cl::opt<bool> EnableR600IfConvert("r600-if-convert",
-                                         cl::desc("Use if conversion pass"),
-                                         cl::ReallyHidden, cl::init(true));
+cl::opt<bool> EnableR600IfConvert("r600-if-convert",
+                                  cl::desc("Use if conversion pass"),
+                                  cl::ReallyHidden, cl::init(true));
 
 static cl::opt<bool, true> EnableAMDGPUFunctionCallsOpt(
     "amdgpu-function-calls", cl::desc("Enable AMDGPU function call support"),
@@ -145,5 +144,3 @@ void R600PassConfig::addPreEmitPass() {
 TargetPassConfig *R600TargetMachine::createPassConfig(PassManagerBase &PM) {
   return new R600PassConfig(*this, PM);
 }
-
-

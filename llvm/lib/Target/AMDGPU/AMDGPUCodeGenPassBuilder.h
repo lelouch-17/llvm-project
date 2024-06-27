@@ -7,10 +7,11 @@ public:
       : AMDGPUCodeGenPassBuilder<GCNCodeGenPassBuilder, GCNTargetMachine>(
             TM, Opt, PIC) {
     Opt.RequiresCodeGenSCCOrder = true;
-  // Exceptions and StackMaps are not supported, so these passes will never do
-  // anything.
-  // Garbage collection is not supported.
-   disablePass<StackMapLivenessPass, FuncletLayoutPass, ShadowStackGCLoweringPass>();
+    // Exceptions and StackMaps are not supported, so these passes will never do
+    // anything.
+    // Garbage collection is not supported.
+    disablePass<StackMapLivenessPass, FuncletLayoutPass,
+                ShadowStackGCLoweringPass>();
   }
 
   void addPreISel(AddIRPass &) const;
