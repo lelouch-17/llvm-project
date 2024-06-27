@@ -1,73 +1,156 @@
-; RUN: llc -enable-new-pm -O0 -mtriple=amdgcn-amd-amdhsa  -debug-pass-manager %s -o /dev/null 2>&1 | FileCheck -check-prefix=O0-PIPELINE %s
+; RUN: llc  -enable-new-pm -O0 -mtriple=amdgcn-amd-amdhsa  -debug-pass-manager %s -o /dev/null 2>&1 |  FileCheck -check-prefix=O0-PIPELINE %s
+; RUN: not llc --crash -enable-new-pm -O3 -mtriple=amdgcn-amd-amdhsa  -debug-pass-manager %s -o /dev/null 2>&1
 
+; O0-PIPELINE: Running pass: RequireAnalysisPass<llvm::MachineModuleAnalysis, llvm::Module, llvm::AnalysisManager<llvm::Module>> on [module]
+; O0-PIPELINE: Running analysis: MachineModuleAnalysis on [module]
+; O0-PIPELINE: Verifying module
 ; O0-PIPELINE: Running pass: RequireAnalysisPass<llvm::ProfileSummaryAnalysis, llvm::Module, llvm::AnalysisManager<llvm::Module>> on [module]
-; O0-PIPELINE-NEXT: Running analysis: ProfileSummaryAnalysis on [module]
-; O0-PIPELINE-NEXT: Running pass: RequireAnalysisPass<llvm::CollectorMetadataAnalysis, llvm::Module, llvm::AnalysisManager<llvm::Module>> on [module]
-; O0-PIPELINE-NEXT: Running analysis: CollectorMetadataAnalysis on [module]
-; O0-PIPELINE-NEXT: Running pass: PreISelIntrinsicLoweringPass on [module]
-; O0-PIPELINE-NEXT: Running analysis: InnerAnalysisManagerProxy<llvm::FunctionAnalysisManager, llvm::Module> on [module]
-; O0-PIPELINE-NEXT: Running pass: (anonymous namespace)::AMDGPURemoveIncompatibleFunctionsPass on [module]
-; O0-PIPELINE-NEXT: Running pass: AMDGPUPrintfRuntimeBindingPass on [module]
-; O0-PIPELINE-NEXT: Running pass: (anonymous namespace)::AMDGPUCtorDtorLoweringLegacyPass on [module]
-; O0-PIPELINE-NEXT: Running pass: AMDGPUAlwaysInlinePass on [module]
-; O0-PIPELINE-NEXT: Running pass: (anonymous namespace)::AlwaysInlinerLegacyPass on [module]
-; O0-PIPELINE-NEXT: Running pass: (anonymous namespace)::AMDGPUOpenCLEnqueuedBlockLoweringPass on [module]
-; O0-PIPELINE-NEXT: Running pass: (anonymous namespace)::AMDGPULowerModuleLDSLegacyPass on [module]
-; O0-PIPELINE-NEXT: Running pass: VerifierPass on f (1 instruction)
-; O0-PIPELINE-NEXT: Running analysis: VerifierAnalysis on f
-; O0-PIPELINE-NEXT: Running pass: ShadowStackGCLoweringPass on [module]
-; O0-PIPELINE-NEXT: Running pass: LowerConstantIntrinsicsPass on f (1 instruction)
-; O0-PIPELINE-NEXT: Running analysis: TargetLibraryAnalysis on f
-; O0-PIPELINE-NEXT: Running pass: UnreachableBlockElimPass on f (1 instruction)
-; O0-PIPELINE-NEXT: Running pass: EntryExitInstrumenterPass on f (1 instruction)
-; O0-PIPELINE-NEXT: Invalidating analysis: VerifierAnalysis on f
-; O0-PIPELINE-NEXT: Running pass: ScalarizeMaskedMemIntrinPass on f (1 instruction)
-; O0-PIPELINE-NEXT: Running analysis: TargetIRAnalysis on f
-; O0-PIPELINE-NEXT: Running pass: ExpandReductionsPass on f (1 instruction)
-; O0-PIPELINE-NEXT: Running pass: EarlyCSEPass on f (1 instruction)
-; O0-PIPELINE-NEXT: Running analysis: DominatorTreeAnalysis on f
-; O0-PIPELINE-NEXT: Running analysis: AssumptionAnalysis on f
-; O0-PIPELINE-NEXT: Running pass: (anonymous namespace)::AMDGPUAnnotateKernelFeaturesPass on f (1 instruction)
-; O0-PIPELINE-NEXT: Running pass: AMDGPULowerKernelArgumentsPass on f (1 instruction)
-; O0-PIPELINE-NEXT: Running pass: LowerSwitchPass on f (1 instruction)
-; O0-PIPELINE-NEXT: Running analysis: LazyValueAnalysis on f
-; O0-PIPELINE-NEXT: Running pass: LowerInvokePass on f (1 instruction)
-; O0-PIPELINE-NEXT: Running pass: UnreachableBlockElimPass on f (1 instruction)
-; O0-PIPELINE-NEXT: Running pass: CallBrPreparePass on f (1 instruction)
-; O0-PIPELINE-NEXT: Running pass: SafeStackPass on f (1 instruction)
-; O0-PIPELINE-NEXT: Running pass: StackProtectorPass on f (1 instruction)
-; O0-PIPELINE-NEXT: Running analysis: SSPLayoutAnalysis on f
-; O0-PIPELINE-NEXT: Running pass: VerifierPass on f (1 instruction)
-; O0-PIPELINE-NEXT: Running analysis: VerifierAnalysis on f
-; O0-PIPELINE-NEXT: Running analysis: MachineModuleAnalysis on [module]
-; O0-PIPELINE-NEXT: Running analysis: InnerAnalysisManagerProxy<llvm::MachineFunctionAnalysisManager, llvm::Module> on [module]
-; O0-PIPELINE-NEXT: Running analysis: OuterAnalysisManagerProxy<llvm::ModuleAnalysisManager, llvm::MachineFunction> on f
-; O0-PIPELINE-NEXT: Running pass: FinalizeISelPass on f
-; O0-PIPELINE-NEXT: Running pass: LocalStackSlotPass on f
-; O0-PIPELINE-NEXT: Running pass: PHIEliminationPass on f
-; O0-PIPELINE-NEXT: Running pass: TwoAddressInstructionPass on f
-; O0-PIPELINE-NEXT: Running pass: (anonymous namespace)::SIFixVGPRCopiesPass on f
-; O0-PIPELINE-NEXT: Running pass: RemoveRedundantDebugValuesPass on f
-; O0-PIPELINE-NEXT: Running pass: PrologEpilogInserterPass on f
-; O0-PIPELINE-NEXT: Running pass: ExpandPostRAPseudosPass on f
-; O0-PIPELINE-NEXT: Running pass: (anonymous namespace)::SIPostRABundlerPass on f
-; O0-PIPELINE-NEXT: Running pass: FEntryInserterPass on f
-; O0-PIPELINE-NEXT: Running pass: XRayInstrumentationPass on f
-; O0-PIPELINE-NEXT: Running pass: PatchableFunctionPass on f
-; O0-PIPELINE-NEXT: Running pass: (anonymous namespace)::SIMemoryLegalizerPass on f
-; O0-PIPELINE-NEXT: Running pass: (anonymous namespace)::SIInsertWaitcntsPass on f
-; O0-PIPELINE-NEXT: Running pass: (anonymous namespace)::SIModeRegisterPass on f
-; O0-PIPELINE-NEXT: Running pass: (anonymous namespace)::SILateBranchLoweringPass on f
-; O0-PIPELINE-NEXT: Running pass: PostRAHazardRecognizerPass on f
-; O0-PIPELINE-NEXT: Running pass: BranchRelaxationPass on f
-; O0-PIPELINE-NEXT: Running pass: FuncletLayoutPass on f
-; O0-PIPELINE-NEXT: Running pass: StackMapLivenessPass on f
-; O0-PIPELINE-NEXT: Running pass: LiveDebugValuesPass on f
-; O0-PIPELINE-NEXT: Running pass: MachineSanitizerBinaryMetadata on f
-; O0-PIPELINE-NEXT: Running pass: FreeMachineFunctionPass on f
-; O0-PIPELINE-NEXT: Clearing all analysis results for: f
-; O0-PIPELINE-NEXT: Invalidating analysis: InnerAnalysisManagerProxy<llvm::FunctionAnalysisManager, llvm::Module> on [module]
-; O0-PIPELINE-NEXT: Invalidating analysis: InnerAnalysisManagerProxy<llvm::MachineFunctionAnalysisManager, llvm::Module> on [module]
+; O0-PIPELINE: Running analysis: ProfileSummaryAnalysis on [module]
+; O0-PIPELINE: Verifying module
+; O0-PIPELINE: Running pass: RequireAnalysisPass<llvm::CollectorMetadataAnalysis, llvm::Module, llvm::AnalysisManager<llvm::Module>> on [module]
+; O0-PIPELINE: Running analysis: CollectorMetadataAnalysis on [module]
+; O0-PIPELINE: Verifying module
+; O0-PIPELINE: Running pass: PreISelIntrinsicLoweringPass on [module]
+; O0-PIPELINE: Running analysis: InnerAnalysisManagerProxy<llvm::FunctionAnalysisManager, llvm::Module> on [module]
+; O0-PIPELINE: Verifying module
+; O0-PIPELINE: Running pass: (anonymous namespace)::AMDGPURemoveIncompatibleFunctionsPass on [module]
+; O0-PIPELINE: Verifying module
+; O0-PIPELINE: Running pass: AMDGPUPrintfRuntimeBindingPass on [module]
+; O0-PIPELINE: Verifying module
+; O0-PIPELINE: Running pass: (anonymous namespace)::AMDGPUCtorDtorLoweringLegacyPass on [module]
+; O0-PIPELINE: Verifying module
+; O0-PIPELINE: Running pass: AMDGPUAlwaysInlinePass on [module]
+; O0-PIPELINE: Verifying module
+; O0-PIPELINE: Running pass: (anonymous namespace)::AlwaysInlinerLegacyPass on [module]
+; O0-PIPELINE: Verifying module
+; O0-PIPELINE: Running pass: (anonymous namespace)::AMDGPUOpenCLEnqueuedBlockLoweringPass on [module]
+; O0-PIPELINE: Verifying module
+; O0-PIPELINE: Running pass: (anonymous namespace)::AMDGPULowerModuleLDSLegacyPass on [module]
+; O0-PIPELINE: Verifying module
+; O0-PIPELINE: Running pass: AtomicExpandPass on f (1 instruction)
+; O0-PIPELINE: Verifying function f
+; O0-PIPELINE: Running pass: VerifierPass on f (1 instruction)
+; O0-PIPELINE: Running analysis: VerifierAnalysis on f
+; O0-PIPELINE: Running pass: GCLoweringPass on f (1 instruction)
+; O0-PIPELINE: Verifying function f
+; O0-PIPELINE: Running pass: LowerConstantIntrinsicsPass on f (1 instruction)
+; O0-PIPELINE: Running analysis: TargetLibraryAnalysis on f
+; O0-PIPELINE: Verifying function f
+; O0-PIPELINE: Running pass: UnreachableBlockElimPass on f (1 instruction)
+; O0-PIPELINE: Verifying function f
+; O0-PIPELINE: Running pass: EntryExitInstrumenterPass on f (1 instruction)
+; O0-PIPELINE: Verifying function f
+; O0-PIPELINE: Running pass: ScalarizeMaskedMemIntrinPass on f (1 instruction)
+; O0-PIPELINE: Running analysis: TargetIRAnalysis on f
+; O0-PIPELINE: Verifying function f
+; O0-PIPELINE: Running pass: ExpandReductionsPass on f (1 instruction)
+; O0-PIPELINE: Verifying function f
+; O0-PIPELINE: Running pass: (anonymous namespace)::AMDGPUAnnotateKernelFeaturesPass on f (1 instruction)
+; O0-PIPELINE: Verifying function f
+; O0-PIPELINE: Running pass: AMDGPULowerKernelArgumentsPass on f (1 instruction)
+; O0-PIPELINE: Verifying function f
+; O0-PIPELINE: Running pass: LowerSwitchPass on f (1 instruction)
+; O0-PIPELINE: Running analysis: LazyValueAnalysis on f
+; O0-PIPELINE: Running analysis: AssumptionAnalysis on f
+; O0-PIPELINE: Verifying function f
+; O0-PIPELINE: Running pass: LowerInvokePass on f (1 instruction)
+; O0-PIPELINE: Verifying function f
+; O0-PIPELINE: Running pass: UnreachableBlockElimPass on f (1 instruction)
+; O0-PIPELINE: Verifying function f
+; O0-PIPELINE: Running pass: AMDGPUUnifyDivergentExitNodesPass on f (1 instruction)
+; O0-PIPELINE: Running analysis: PostDominatorTreeAnalysis on f
+; O0-PIPELINE: Running analysis: UniformityInfoAnalysis on f
+; O0-PIPELINE: Running analysis: DominatorTreeAnalysis on f
+; O0-PIPELINE: Running analysis: CycleAnalysis on f
+; O0-PIPELINE: Verifying function f
+; O0-PIPELINE: Running pass: FixIrreduciblePass on f (1 instruction)
+; O0-PIPELINE: Running analysis: LoopAnalysis on f
+; O0-PIPELINE: Verifying function f
+; O0-PIPELINE: Running pass: UnifyLoopExitsPass on f (1 instruction)
+; O0-PIPELINE: Verifying function f
+; O0-PIPELINE: Running pass: StructurizeCFGPass on f (1 instruction)
+; O0-PIPELINE: Running analysis: RegionInfoAnalysis on f
+; O0-PIPELINE: Running analysis: DominanceFrontierAnalysis on f
+; O0-PIPELINE: Verifying function f
+; O0-PIPELINE: Running pass: (anonymous namespace)::AMDGPUAnnotateUniformValuesPass on f (1 instruction)
+; O0-PIPELINE: Verifying function f
+; O0-PIPELINE: Running pass: (anonymous namespace)::SIAnnotateControlFlowPass on f (1 instruction)
+; O0-PIPELINE: Verifying function f
+; O0-PIPELINE: Running pass: AMDGPURewriteUndefForPHIPass on f (1 instruction)
+; O0-PIPELINE: Verifying function f
+; O0-PIPELINE: Running pass: LCSSAPass on f (1 instruction)
+; O0-PIPELINE: Verifying function f
+; O0-PIPELINE: Running pass: CallBrPreparePass on f (1 instruction)
+; O0-PIPELINE: Verifying function f
+; O0-PIPELINE: Running pass: SafeStackPass on f (1 instruction)
+; O0-PIPELINE: Verifying function f
+; O0-PIPELINE: Running pass: StackProtectorPass on f (1 instruction)
+; O0-PIPELINE: Running analysis: SSPLayoutAnalysis on f
+; O0-PIPELINE: Verifying function f
+; O0-PIPELINE: Running pass: VerifierPass on f (1 instruction)
+; O0-PIPELINE: Running analysis: InnerAnalysisManagerProxy<llvm::MachineFunctionAnalysisManager, llvm::Function> on f
+; O0-PIPELINE: Running analysis: MachineFunctionAnalysis on f
+; O0-PIPELINE: Running analysis: OuterAnalysisManagerProxy<llvm::ModuleAnalysisManager, llvm::Function> on f
+; O0-PIPELINE: Running pass: (anonymous namespace)::AMDGPUDAGToDAGISelPass on f
+; O0-PIPELINE: Verifying machine function f
+; O0-PIPELINE: Running pass: (anonymous namespace)::SIFixSGPRCopiesPass on f
+; O0-PIPELINE: Verifying machine function f
+; O0-PIPELINE: Running pass: (anonymous namespace)::SILowerI1CopiesPass on f
+; O0-PIPELINE: Verifying machine function f
+; O0-PIPELINE: Running pass: FinalizeISelPass on f
+; O0-PIPELINE: Verifying machine function f
+; O0-PIPELINE: Running pass: LocalStackSlotAllocationPass on f
+; O0-PIPELINE: Verifying machine function f
+; O0-PIPELINE: Running pass: PHIEliminationPass on f
+; O0-PIPELINE: Verifying machine function f
+; O0-PIPELINE: Running pass: (anonymous namespace)::SILowerControlFlowPass on f
+; O0-PIPELINE: Verifying machine function f
+; O0-PIPELINE: Running pass: TwoAddressInstructionPass on f
+; O0-PIPELINE: Verifying machine function f
+; O0-PIPELINE: Running pass: (anonymous namespace)::SIWholeQuadModePass on f
+; O0-PIPELINE: Verifying machine function f
+; O0-PIPELINE: Running pass: (anonymous namespace)::GCNPreRALongBranchRegPass on f
+; O0-PIPELINE: Verifying machine function f
+; O0-PIPELINE: Running pass: (anonymous namespace)::SILowerSGPRSpillsPass on f
+; O0-PIPELINE: Verifying machine function f
+; O0-PIPELINE: Running pass: (anonymous namespace)::SIPreAllocateWWMRegsPass on f
+; O0-PIPELINE: Verifying machine function f
+; O0-PIPELINE: Running pass: (anonymous namespace)::SILowerWWMCopiesPass on f
+; O0-PIPELINE: Verifying machine function f
+; O0-PIPELINE: Running pass: (anonymous namespace)::SIFixVGPRCopiesPass on f
+; O0-PIPELINE: Verifying machine function f
+; O0-PIPELINE: Running pass: RemoveRedundantDebugValuesPass on f
+; O0-PIPELINE: Verifying machine function f
+; O0-PIPELINE: Running pass: PrologEpilogInserterPass on f
+; O0-PIPELINE: Verifying machine function f
+; O0-PIPELINE: Running pass: ExpandPostRAPseudosPass on f
+; O0-PIPELINE: Verifying machine function f
+; O0-PIPELINE: Running pass: (anonymous namespace)::SIPostRABundlerPass on f
+; O0-PIPELINE: Verifying machine function f
+; O0-PIPELINE: Running pass: FEntryInserterPass on f
+; O0-PIPELINE: Verifying machine function f
+; O0-PIPELINE: Running pass: XRayInstrumentationPass on f
+; O0-PIPELINE: Verifying machine function f
+; O0-PIPELINE: Running pass: (anonymous namespace)::SIMemoryLegalizerPass on f
+; O0-PIPELINE: Verifying machine function f
+; O0-PIPELINE: Running pass: (anonymous namespace)::SIInsertWaitcntsPass on f
+; O0-PIPELINE: Verifying machine function f
+; O0-PIPELINE: Running pass: (anonymous namespace)::SIModeRegisterPass on f
+; O0-PIPELINE: Verifying machine function f
+; O0-PIPELINE: Running pass: (anonymous namespace)::SILateBranchLoweringPass on f
+; O0-PIPELINE: Verifying machine function f
+; O0-PIPELINE: Running pass: (anonymous namespace)::PostRAHazardRecognizerPass on f
+; O0-PIPELINE: Verifying machine function f
+; O0-PIPELINE: Running pass: (anonymous namespace)::BranchRelaxationPass on f
+; O0-PIPELINE: Verifying machine function f
+; O0-PIPELINE: Running pass: LiveDebugValuesPass on f
+; O0-PIPELINE: Verifying machine function f
+; O0-PIPELINE: Running pass: MachineSanitizerBinaryMetadata on f
+; O0-PIPELINE: Verifying machine function f
+; O0-PIPELINE: Running pass: InvalidateAnalysisPass<llvm::MachineFunctionAnalysis> on f (1 instruction)
+; O0-PIPELINE: Invalidating analysis: InnerAnalysisManagerProxy<llvm::MachineFunctionAnalysisManager, llvm::Function> on f
+; O0-PIPELINE: Invalidating analysis: MachineFunctionAnalysis on f
+; O0-PIPELINE: Verifying function f
 
 ; O3-PIPELINE: Running pass: RequireAnalysisPass<llvm::ProfileSummaryAnalysis, llvm::Module, llvm::AnalysisManager<llvm::Module>> on [module]
 ; O3-PIPELINE-NEXT: Running analysis: ProfileSummaryAnalysis on [module]
@@ -219,6 +302,7 @@
 ; O3-PIPELINE-NEXT: Clearing all analysis results for: f
 ; O3-PIPELINE-NEXT: Invalidating analysis: InnerAnalysisManagerProxy<llvm::FunctionAnalysisManager, llvm::Module> on [module]
 ; O3-PIPELINE-NEXT: Invalidating analysis: InnerAnalysisManagerProxy<llvm::MachineFunctionAnalysisManager, llvm::Module> on [module]
+
 
 define void @f() {
   ret void
