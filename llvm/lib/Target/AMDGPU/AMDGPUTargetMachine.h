@@ -116,6 +116,11 @@ public:
                                 PerFunctionMIParsingState &PFS,
                                 SMDiagnostic &Error,
                                 SMRange &SourceRange) const override;
+
+  Error buildCodeGenPipeline(ModulePassManager &, raw_pwrite_stream &,
+                             raw_pwrite_stream *, CodeGenFileType,
+                             const CGPassBuilderOption &,
+                             PassInstrumentationCallbacks *) override;
 };
 
 //===----------------------------------------------------------------------===//
