@@ -1,6 +1,4 @@
-
-
- #include "AMDGPUCodeGenPassBuilderImpl.h"
+#include "AMDGPUCodeGenPassBuilderImpl.h"
 class GCNCodeGenPassBuilder final
     : public AMDGPUCodeGenPassBuilder<GCNCodeGenPassBuilder, GCNTargetMachine> {
 public:
@@ -32,7 +30,7 @@ public:
 
   FunctionPass *createSGPRAllocPass(bool Optimized);
   FunctionPass *createVGPRAllocPass(bool Optimized);
-  // FunctionPass *createRegAllocPass(bool Optimized) override;
+  FunctionPass *createRegAllocPass(bool Optimized);
 
   Error addRegAssignmentFast(AddMachinePass &) const;
   Error addRegAssignmentOptimized(AddMachinePass &) const;

@@ -106,14 +106,23 @@ void GCNCodeGenPassBuilder::addAsmPrinter(AddMachinePass &addPass,
   
 }
 
+
+//FIXME_NEW: Dummy Implementation
 FunctionPass *
 GCNCodeGenPassBuilder::createSGPRAllocPass(bool Optimized) { 
   return nullptr;
 }
 
+//FIXME_NEW: Dummy Implementation
 FunctionPass *
 GCNCodeGenPassBuilder::createVGPRAllocPass(bool Optimized) { 
   return nullptr;
+}
+
+FunctionPass *
+GCNCodeGenPassBuilder::createRegAllocPass(bool Optimized) { 
+   llvm_unreachable("should not be used");
+   return nullptr;
 }
 
 
@@ -125,13 +134,15 @@ Error GCNCodeGenPassBuilder::addRegAssignmentFast(
 
   addPass(GCNPreRALongBranchRegPass());
 
-  //  addPass(createSGPRAllocPass(false)); FIXME_NEW
+   //  FIXME_NEW
+  //  addPass(createSGPRAllocPass(false)); 
 
   // Equivalent of PEI for SGPRs.
   addPass(SILowerSGPRSpillsPass());
   addPass(SIPreAllocateWWMRegsPass());
 
-  // addPass(createVGPRAllocPass(false)); FIXME_NEW
+  //  FIXME_NEW
+  // addPass(createVGPRAllocPass(false)); 
 
   addPass(SILowerWWMCopiesPass());
   return Error::success();
@@ -139,13 +150,14 @@ Error GCNCodeGenPassBuilder::addRegAssignmentFast(
 
 Error GCNCodeGenPassBuilder::addRegAssignmentOptimized(
     AddMachinePass &addPass) const {
-  // FIXME_NEW : RegAlloc CLI in TargetPassConfig Remove implementation ? 
+  // FIXME_NEW : Provided by Codegenpassbuilder/Targetpassconfig(oldPM) 
   // if (!usingDefaultRegAlloc())
   //   report_fatal_error(RegAllocOptNotSupportedMessage);
 
   addPass(GCNPreRALongBranchRegPass());
 
-  //  addPass(createSGPRAllocPass(true)); FIXME_NEW
+   // FIXME_NEW 
+  //  addPass(createSGPRAllocPass(true)); 
 
   // Commit allocated register changes. This is mostly necessary because too
   // many things rely on the use lists of the physical registers, such as the
@@ -157,7 +169,8 @@ Error GCNCodeGenPassBuilder::addRegAssignmentOptimized(
   addPass(SILowerSGPRSpillsPass());
   addPass(SIPreAllocateWWMRegsPass());
 
-  // addPass(createVGPRAllocPass(true));  FIXME_NEW
+  //  FIXME_NEW: 
+  // addPass(createVGPRAllocPass(true)); 
 
   addPreRewrite(addPass);
    addPass(VirtRegRewriterPass());
@@ -278,7 +291,7 @@ void GCNCodeGenPassBuilder::addOptimizedRegAlloc(AddMachinePass &addPass){
   // // inside a bundle, seems only the BUNDLE instruction appears as the Kills of
   // // the register in LiveVariables, this would trigger a failure in verifier,
   // // we should fix it and enable the verifier.
-  //FIXME: check MschinePassRegistry
+  //FIXME_NEW : Insert this pass
   // if (OptVGPRLiveRange)
   //   insertPass(&LiveVariablesID, &SIOptimizeVGPRLiveRangeID);
   // // This must be run immediately after phi elimination and before
@@ -378,9 +391,8 @@ void GCNCodeGenPassBuilder::addPreISel(AddIRPass &addPass) const {
   }
   addPass(LCSSAPass());
    
-
-  // if (getOptLevel() > CodeGenOptLevel::Less)
-   // FIXME_NEW : CGSCCPass ? 
+   // FIXME_NEW : Add this CGSCC pass
+  // if (getOptLevel() > CodeGenOptLevel::Less) 
   //   addPass(createModuleToPostOrderCGSCCPassAdaptor(AMDGPUPerfHintAnalysisPass())); 
 
 }

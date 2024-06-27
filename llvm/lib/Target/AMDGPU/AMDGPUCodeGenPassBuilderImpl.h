@@ -45,20 +45,6 @@ namespace {
       return PreservedAnalyses::all();                                         \
     }                                                                          \
   };
-#define DUMMY_LOOP_PASS(NAME, PASS_NAME)                          \
-  struct PASS_NAME : public PassInfoMixin<PASS_NAME> {                         \
-    template <typename... Ts> PASS_NAME(Ts &&...) {}                           \
-    PreservedAnalyses run(Loop &, LoopAnalysisManager &) {                     \
-      return PreservedAnalyses::all();                                         \
-    }                                                                          \
-  };
-  #define DUMMY_CGSCC_PASS(NAME, PASS_NAME)                    \
-  struct PASS_NAME : public PassInfoMixin<PASS_NAME> {                         \
-    template <typename... Ts> PASS_NAME(Ts &&...) {}                           \
-    PreservedAnalyses run(LazyCallGraph::SCC &,CGSCCAnalysisManager &,LazyCallGraph &, CGSCCUpdateResult &) {             \
-      return PreservedAnalyses::all();                                         \
-    }                                                                          \
-  };
   #define DUMMY_FUNCTION_PASS(NAME, PASS_NAME)                    \
   struct PASS_NAME : public PassInfoMixin<PASS_NAME> {                         \
     template <typename... Ts> PASS_NAME(Ts &&...) {}                           \
@@ -262,7 +248,7 @@ void AMDGPUCodeGenPassBuilder<DerivedT, TargetMachineT>::addIRPasses(
       addStraightLineScalarOptimizationPasses(addPass);
 
     if (EnableAMDGPUAliasAnalysis) {
-      // FIXME_NEW: 
+      // FIXME_NEW: Add these passes to the pipeline  
       //addPass(AMDGPUAA());
       // addPass(createExternalAAWrapperPass([](Pass &P, Function &,
       //                                        AAResults &AAR) {
@@ -283,7 +269,8 @@ void AMDGPUCodeGenPassBuilder<DerivedT, TargetMachineT>::addIRPasses(
     // have expanded.
     if (CodeGenPassBuilder<DerivedT, TargetMachineT>::getOptLevel() >
         CodeGenOptLevel::Less) {
-     //  addPass(createFunctionToLoopPassAdaptor(LICMPass())); NEW_ERROR
+     // FIXME_NEW : Add this loop pass
+     //  addPass(createFunctionToLoopPassAdaptor(LICMPass())); 
     }
   }
 
